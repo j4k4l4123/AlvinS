@@ -1,18 +1,10 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PageController;
 
-Route::get('/', function () {
-    return redirect('/dashboard');
-});
+Route::get('/', [PageController::class, 'login']);
+Route::post('/login', [PageController::class, 'handleLogin']);
+Route::get('/dashboard', [PageController::class, 'dashboard']);
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-});
 
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [AuthController::class, 'dashboard']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-});
