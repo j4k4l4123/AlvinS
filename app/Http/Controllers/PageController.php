@@ -11,6 +11,11 @@ class PageController extends Controller
         return view('login');
     }
 
+    public function test()
+    {
+        return view('test');
+    }
+
     public function handleLogin(Request $request)
     {
         return redirect('/dashboard');
