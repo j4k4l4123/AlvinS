@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -36,8 +36,13 @@
     <main class="container">
         <div class="hero">
             <h1>Welcome, {{ $name }}</h1>
-            <p>Here's your dashboard snapshot. You can access your current classes and tasks below.</p>
-            <button class="button" onclick="window.location.href='/'">Sign Out</button>
+            <p>Here is your dashboard snapshot. You can access your current classes and tasks below.</p>
+            
+            <!-- Sign Out Form - POST to /logout to clear session -->
+            <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                @csrf
+                <button type="submit" class="button">Sign Out</button>
+            </form>
         </div>
     </main>
 </body>
