@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Pengguna;
 
 class PageController extends Controller
 {
@@ -69,5 +70,15 @@ class PageController extends Controller
         // session()->forget(['user_id', 'user_name', 'user_email', 'is_logged_in']);
 
         return redirect('/login')->with('success', 'You have been logged out successfully.');
+    }
+
+    // Database page - shows pengguna data using Model
+    public function database()
+    {
+        // Get all data using Eloquent Model (MVC way!)
+        $pengguna = Pengguna::all();
+        
+        // Return view with data
+        return view('database-page', compact('pengguna'));
     }
 }

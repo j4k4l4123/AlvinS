@@ -18,3 +18,6 @@ Route::middleware(['auth.custom'])->group(function () {
 
 // Test page (public for everyone)
 Route::get('/test', [PageController::class, 'test']);
+
+// Database page route (shows database data) - Using PageController
+Route::get('/database', [PageController::class, 'database']);
