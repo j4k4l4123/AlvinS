@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
@@ -14,10 +14,15 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth.custom'])->group(function () {
     Route::get('/dashboard', [PageController::class, 'dashboard']);
     Route::post('/logout', [PageController::class, 'logout'])->name('logout');
+    
+    // CRUD Routes for Pengguna
+    Route::get('/database', [PageController::class, 'database'])->name('pengguna.index');
+    Route::get('/pengguna/create', [PageController::class, 'create'])->name('pengguna.create');
+    Route::post('/pengguna', [PageController::class, 'store'])->name('pengguna.store');
+    Route::get('/pengguna/{id}/edit', [PageController::class, 'edit'])->name('pengguna.edit');
+    Route::put('/pengguna/{id}', [PageController::class, 'update'])->name('pengguna.update');
+    Route::delete('/pengguna/{id}', [PageController::class, 'destroy'])->name('pengguna.destroy');
 });
 
 // Test page (public for everyone)
 Route::get('/test', [PageController::class, 'test']);
-
-// Database page route (shows database data) - Using PageController
-Route::get('/database', [PageController::class, 'database']);
