@@ -1,7 +1,8 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\BookController;
 
 // Guest routes (only for NOT logged in users)
 Route::middleware(['guest'])->group(function () {
@@ -26,3 +27,12 @@ Route::middleware(['auth.custom'])->group(function () {
 
 // Test page (public for everyone)
 Route::get('/test', [PageController::class, 'test']);
+
+// Book System Routes
+Route::get('/books', [BookController::class, 'books'])->name('books.index');
+Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
+Route::post('/books', [BookController::class, 'store'])->name('books.store');
+Route::get('/books/{id}', [BookController::class, 'show'])->name('books.show');
+Route::get('/books/{id}/edit', [BookController::class, 'edit'])->name('books.edit');
+Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
+Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.destroy');
