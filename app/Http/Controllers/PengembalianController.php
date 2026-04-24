@@ -14,16 +14,19 @@ class PengembalianController extends Controller
         $query = Pengembalian::with(['anggota', 'book', 'pinjam']);
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->whereHas('book', function($q) use ($search) {
-                $q->where('judul', 'like', "%{$search}%");
-            })->orWhereHas('anggota', function($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%");
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereHas('book', function($sub) use ($search) {
+                    $sub->whereRaw('LOWER(judul) LIKE ?', ["%{$search}%"]);
+                })->orWhereHas('anggota', function($sub) use ($search) {
+                    $sub->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"]);
+                });
             });
         }
 
         $pengembalian = $query->get();
-        return view('pengembalian.index', compact('pengembalian'));
+        $pinjamAktif = Pinjam::with(['anggota', 'book'])->where('status', 'dipinjam')->get();
+        return view('pengembalian.index', compact('pengembalian', 'pinjamAktif'));
     }
 
     public function create()

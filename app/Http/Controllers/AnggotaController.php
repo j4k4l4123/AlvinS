@@ -8,9 +8,20 @@ use Illuminate\Http\Request;
 class AnggotaController extends Controller
 {
     // Show all anggota
-    public function index()
+    public function index(Request $request)
     {
-        $anggota = Anggota::all();
+        $query = Anggota::query();
+
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(id_anggota) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(alamat) LIKE ?', ["%{$search}%"]);
+            });
+        }
+
+        $anggota = $query->get();
         return view('anggota.index', compact('anggota'));
     }
 

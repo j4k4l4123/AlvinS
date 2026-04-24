@@ -19,29 +19,60 @@
                     @endforeach
                 </ul>
             </div>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert-error">
+            <span class="alert-icon">⚠️</span> {{ session('error') }}
+        </div>
     @endif
 
     <form action="{{ route('pinjam.store') }}" method="POST" class="styled-form">
         @csrf
 
+        {{-- Searchable Anggota Select --}}
         <div class="form-group full-width">
-            <label for="anggota_id"><span class="label-icon">👤</span> Pilih Anggota</label>
-            <select id="anggota_id" name="anggota_id" required class="form-input">
-                <option value="">-- Pilih Anggota --</option>
-                @foreach($anggota as $a)
-                    <option value="{{ $a->id }}" {{ old('anggota_id') == $a->id ? 'selected' : '' }}>{{ $a->nama }} ({{ $a->id_anggota }})</option>
-                @endforeach
-            </select>
+            <label for="anggota_search"><span class="label-icon">👤</span> Pilih Anggota</label>
+            <div class="searchable-select" id="anggotaSelect">
+                <input type="text" id="anggota_search" class="form-input searchable-input" placeholder="🔍 Ketik nama anggota..." autocomplete="off" onfocus="openDropdown('anggota')" oninput="filterDropdown('anggota', this.value)">
+                <input type="hidden" name="anggota_id" id="anggota_id" value="{{ old('anggota_id') }}" required>
+                <div class="searchable-dropdown" id="anggota_dropdown">
+                    @foreach($anggota as $a)
+                        <div class="searchable-option" onclick="selectOption('anggota', '{{ $a->id }}', '{{ $a->nama }} ({{ $a->id_anggota }})')">
+                            {{ $a->nama }} ({{ $a->id_anggota }})
+                        </div>
+                    @endforeach
+                </div>
+                <div class="searchable-selected" id="anggota_selected">
+                    @if(old('anggota_id'))
+                        @php $oldA = $anggota->firstWhere('id', old('anggota_id')); @endphp
+                        @if($oldA) {{ $oldA->nama }} ({{ $oldA->id_anggota }}) @endif
+                    @endif
+                </div>
+            </div>
         </div>
 
+        {{-- Searchable Book Select --}}
         <div class="form-group full-width">
-            <label for="book_id"><span class="label-icon">📚</span> Pilih Buku</label>
-            <select id="book_id" name="book_id" required class="form-input">
-                <option value="">-- Pilih Buku --</option>
-                @foreach($books as $b)
-                    <option value="{{ $b->id }}" {{ old('book_id') == $b->id ? 'selected' : '' }}>{{ $b->judul }}</option>
-                @endforeach
-            </select>
+            <label for="book_search"><span class="label-icon">📚</span> Pilih Buku</label>
+            <div class="searchable-select" id="bookSelect">
+                <input type="text" id="book_search" class="form-input searchable-input" placeholder="🔍 Ketik judul buku..." autocomplete="off" onfocus="openDropdown('book')" oninput="filterDropdown('book', this.value)">
+                <input type="hidden" name="book_id" id="book_id" value="{{ old('book_id') }}" required>
+                <div class="searchable-dropdown" id="book_dropdown">
+                    @foreach($books as $b)
+                        <div class="searchable-option" onclick="selectOption('book', '{{ $b->id }}', '#{{ $b->id_buku }} — {{ $b->judul }}')">
+                            #{{ $b->id_buku }} — {{ $b->judul }}
+                        </div>
+                    @endforeach
+                </div>
+                <div class="searchable-selected" id="book_selected">
+                    @if(old('book_id'))
+                        @php $oldB = $books->firstWhere('id', old('book_id')); @endphp
+                        @if($oldB) #{{ $oldB->id_buku }} — {{ $oldB->judul }} @endif
+                    @endif
+                </div>
+            </div>
         </div>
 
         <div class="form-row">
@@ -54,6 +85,7 @@
                 <label for="tanggal_kembali"><span class="label-icon">🎯</span> Tanggal Kembali</label>
                 <input type="date" id="tanggal_kembali" name="tanggal_kembali" value="{{ old('tanggal_kembali') }}" required class="form-input">
             </div>
+        </div>
 
         <div class="form-actions">
             <a href="{{ route('pinjam.index') }}" class="btn-cancel">❌ Batal</a>
@@ -66,139 +98,100 @@
 </div>
 
 <style>
-    .form-container {
-        max-width: 700px;
-        margin: 0 auto;
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-        border-radius: 24px;
-        padding: 40px;
-        border: 3px solid #86efac;
-        box-shadow: 0 20px 60px rgba(34, 197, 94, 0.15);
+    .searchable-select {
+        position: relative;
     }
-    .form-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    .form-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
-    }
-    .form-header h2 {
-        color: #15803d;
-        margin: 0;
-        font-size: 1.8rem;
-    }
-    .form-subtitle {
-        color: #22c55e;
-        margin: 10px 0 0;
-    }
-    .alert-error {
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        border: 2px solid #ef4444;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        color: #dc2626;
-    }
-    .alert-error .alert-icon {
-        font-size: 24px;
-    }
-    .error-list {
-        margin: 10px 0 0 20px;
-        padding: 0;
-    }
-    .error-list li {
-        margin-bottom: 5px;
-    }
-    .styled-form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-    .form-group.full-width {
-        grid-column: 1 / -1;
-    }
-    .form-group label {
-        color: #15803d;
-        font-weight: 600;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .label-icon {
-        font-size: 18px;
-    }
-    .form-input {
-        padding: 14px 18px;
-        border: 2px solid #bbf7d0;
-        border-radius: 12px;
-        font-size: 15px;
-        background: white;
-        transition: all 0.3s;
+    .searchable-input {
         width: 100%;
-    }
-    .form-input:focus {
-        outline: none;
-        border-color: #22c55e;
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
-    }
-    select.form-input {
         cursor: pointer;
     }
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+    .searchable-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 250px;
+        overflow-y: auto;
+        background: white;
+        border: 2px solid #bbf7d0;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        z-index: 50;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-    .form-actions {
-        display: flex;
-        gap: 15px;
-        justify-content: flex-end;
-        margin-top: 10px;
-        padding-top: 20px;
-        border-top: 2px dashed #86efac;
+    .searchable-dropdown.open {
+        display: block;
     }
-    .btn-cancel {
-        background: #fee2e2;
-        color: #dc2626;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s;
-    }
-    .btn-cancel:hover {
-        background: #dc2626;
-        color: white;
-    }
-    .btn-submit {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
-        border: none;
-        padding: 14px 28px;
-        border-radius: 12px;
-        font-weight: 600;
+    .searchable-option {
+        padding: 12px 18px;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-        transition: all 0.3s;
+        border-bottom: 1px solid #f0fdf4;
+        transition: background 0.15s;
+        color: #374151;
     }
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+    .searchable-option:hover {
+        background: #dcfce7;
     }
-    .btn-icon {
-        font-size: 18px;
+    .searchable-option.hidden {
+        display: none;
+    }
+    .searchable-selected {
+        margin-top: 8px;
+        padding: 8px 14px;
+        background: #dcfce7;
+        border-radius: 8px;
+        color: #15803d;
+        font-weight: 600;
+        display: none;
+    }
+    .searchable-selected.visible {
+        display: block;
     }
 </style>
+
+<script>
+    let activeDropdown = null;
+
+    function openDropdown(type) {
+        closeAllDropdowns();
+        document.getElementById(type + '_dropdown').classList.add('open');
+        activeDropdown = type;
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.searchable-dropdown').forEach(d => d.classList.remove('open'));
+        activeDropdown = null;
+    }
+
+    function filterDropdown(type, query) {
+        const dropdown = document.getElementById(type + '_dropdown');
+        const options = dropdown.querySelectorAll('.searchable-option');
+        query = query.toLowerCase();
+        options.forEach(opt => {
+            if (opt.textContent.toLowerCase().includes(query)) {
+                opt.classList.remove('hidden');
+            } else {
+                opt.classList.add('hidden');
+            }
+        });
+    }
+
+    function selectOption(type, id, label) {
+        document.getElementById(type + '_id').value = id;
+        document.getElementById(type + '_search').value = '';
+        const selected = document.getElementById(type + '_selected');
+        selected.textContent = '✓ ' + label;
+        selected.classList.add('visible');
+        closeAllDropdowns();
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (activeDropdown && !e.target.closest('#' + activeDropdown + 'Select')) {
+            closeAllDropdowns();
+        }
+    });
+</script>
 @endsection
+

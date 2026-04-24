@@ -19,7 +19,31 @@
                     @endforeach
                 </ul>
             </div>
+        </div>
     @endif
+
+    {{-- Searchable Existing Book Select --}}
+    <div class="form-group full-width" style="margin-bottom:25px;">
+        <label for="existing_book_search"><span class="label-icon">🔍</span> Salin dari Buku yang Sudah Ada (Opsional)</label>
+        <div class="searchable-select" id="existingBookSelect">
+            <input type="text" id="existing_book_search" class="form-input searchable-input" placeholder="Ketik judul buku yang sudah ada untuk salin data..." autocomplete="off" onfocus="openDropdown('existing_book')" oninput="filterDropdown('existing_book', this.value)">
+            <div class="searchable-dropdown" id="existing_book_dropdown">
+                @foreach($books as $b)
+                    <div class="searchable-option"
+                         data-judul="{{ $b->judul }}"
+                         data-pengarang="{{ $b->pengarang }}"
+                         data-penerbit="{{ $b->penerbit }}"
+                         data-thn="{{ $b->thn_terbit }}"
+                         data-kategori="{{ $b->kategori }}"
+                         data-keterangan="{{ $b->keterangan }}"
+                         onclick="selectExistingBook(this)">
+                        #{{ $b->id_buku }} — {{ $b->judul }}
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        <p style="font-size:12px;color:#6b7280;margin-top:6px;">Pilih buku yang sudah ada untuk mengisi otomatis semua field kecuali ID Buku.</p>
+    </div>
 
     <form action="{{ route('books.store') }}" method="POST" class="styled-form">
         @csrf
@@ -27,13 +51,14 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="id_buku"><span class="label-icon">🆔</span> ID Buku</label>
-                <input type="text" id="id_buku" name="id_buku" value="{{ old('id_buku') }}" placeholder="BKU001" required class="form-input">
+                <input type="text" id="id_buku" name="id_buku" value="{{ old('id_buku', $nextIdBuku) }}" readonly required class="form-input" style="background:#f0fdf4; color:#15803d; font-weight:600;">
             </div>
 
             <div class="form-group">
                 <label for="judul"><span class="label-icon">📖</span> Judul Buku</label>
                 <input type="text" id="judul" name="judul" value="{{ old('judul') }}" placeholder="Judul lengkap" required class="form-input">
             </div>
+        </div>
 
         <div class="form-row">
             <div class="form-group">
@@ -45,6 +70,7 @@
                 <label for="penerbit"><span class="label-icon">🏢</span> Penerbit</label>
                 <input type="text" id="penerbit" name="penerbit" value="{{ old('penerbit') }}" placeholder="Nama penerbit" required class="form-input">
             </div>
+        </div>
 
         <div class="form-row">
             <div class="form-group">
@@ -56,15 +82,12 @@
                 <label for="kategori"><span class="label-icon">🏷️</span> Kategori</label>
                 <select id="kategori" name="kategori" required class="form-input">
                     <option value="">Pilih Kategori</option>
-                    <option value="Fiksi" {{ old('kategori') == 'Fiksi' ? 'selected' : '' }}>Fiksi</option>
-                    <option value="Non-Fiksi" {{ old('kategori') == 'Non-Fiksi' ? 'selected' : '' }}>Non-Fiksi</option>
-                    <option value="Sains" {{ old('kategori') == 'Sains' ? 'selected' : '' }}>Sains</option>
-                    <option value="Teknologi" {{ old('kategori') == 'Teknologi' ? 'selected' : '' }}>Teknologi</option>
-                    <option value="Sejarah" {{ old('kategori') == 'Sejarah' ? 'selected' : '' }}>Sejarah</option>
-                    <option value="Biografi" {{ old('kategori') == 'Biografi' ? 'selected' : '' }}>Biografi</option>
-                    <option value="Lainnya" {{ old('kategori') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                    @foreach(['Fiksi', 'Non-Fiksi', 'Sains', 'Teknologi', 'Sejarah', 'Biografi', 'Lainnya'] as $kat)
+                        <option value="{{ $kat }}" {{ old('kategori') == $kat ? 'selected' : '' }}>{{ $kat }}</option>
+                    @endforeach
                 </select>
             </div>
+        </div>
 
         <div class="form-group full-width">
             <label for="keterangan"><span class="label-icon">📝</span> Keterangan (Opsional)</label>
@@ -82,145 +105,89 @@
 </div>
 
 <style>
-    .form-container {
-        max-width: 700px;
-        margin: 0 auto;
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-        border-radius: 24px;
-        padding: 40px;
-        border: 3px solid #86efac;
-        box-shadow: 0 20px 60px rgba(34, 197, 94, 0.15);
+    .searchable-select {
+        position: relative;
     }
-    .form-header {
-        text-align: center;
-        margin-bottom: 30px;
+    .searchable-input {
+        width: 100%;
+        cursor: pointer;
     }
-    .form-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
-    }
-    .form-header h2 {
-        color: #15803d;
-        margin: 0;
-        font-size: 1.8rem;
-    }
-    .form-subtitle {
-        color: #22c55e;
-        margin: 10px 0 0;
-    }
-    .alert-error {
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        border: 2px solid #ef4444;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        color: #dc2626;
-    }
-    .alert-error .alert-icon {
-        font-size: 24px;
-    }
-    .error-list {
-        margin: 10px 0 0 20px;
-        padding: 0;
-    }
-    .error-list li {
-        margin-bottom: 5px;
-    }
-    .styled-form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-    .form-group.full-width {
-        grid-column: 1 / -1;
-    }
-    .form-group label {
-        color: #15803d;
-        font-weight: 600;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .label-icon {
-        font-size: 18px;
-    }
-    .form-input {
-        padding: 14px 18px;
-        border: 2px solid #bbf7d0;
-        border-radius: 12px;
-        font-size: 15px;
+    .searchable-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 250px;
+        overflow-y: auto;
         background: white;
-        transition: all 0.3s;
+        border: 2px solid #bbf7d0;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        z-index: 50;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-    .form-input:focus {
-        outline: none;
-        border-color: #22c55e;
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+    .searchable-dropdown.open {
+        display: block;
     }
-    .form-input::placeholder {
-        color: #9ca3af;
-    }
-    .form-input.textarea {
-        resize: vertical;
-        min-height: 100px;
-    }
-    select.form-input {
+    .searchable-option {
+        padding: 12px 18px;
         cursor: pointer;
+        border-bottom: 1px solid #f0fdf4;
+        transition: background 0.15s;
+        color: #374151;
     }
-    .form-actions {
-        display: flex;
-        gap: 15px;
-        justify-content: flex-end;
-        margin-top: 10px;
-        padding-top: 20px;
-        border-top: 2px dashed #86efac;
+    .searchable-option:hover {
+        background: #dcfce7;
     }
-    .btn-cancel {
-        background: #fee2e2;
-        color: #dc2626;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s;
-    }
-    .btn-cancel:hover {
-        background: #dc2626;
-        color: white;
-    }
-    .btn-submit {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
-        border: none;
-        padding: 14px 28px;
-        border-radius: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-        transition: all 0.3s;
-    }
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
-    }
-    .btn-icon {
-        font-size: 18px;
+    .searchable-option.hidden {
+        display: none;
     }
 </style>
+
+<script>
+    let activeDropdown = null;
+
+    function openDropdown(type) {
+        closeAllDropdowns();
+        document.getElementById(type + '_dropdown').classList.add('open');
+        activeDropdown = type;
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.searchable-dropdown').forEach(d => d.classList.remove('open'));
+        activeDropdown = null;
+    }
+
+    function filterDropdown(type, query) {
+        const dropdown = document.getElementById(type + '_dropdown');
+        const options = dropdown.querySelectorAll('.searchable-option');
+        query = query.toLowerCase();
+        options.forEach(opt => {
+            if (opt.textContent.toLowerCase().includes(query)) {
+                opt.classList.remove('hidden');
+            } else {
+                opt.classList.add('hidden');
+            }
+        });
+    }
+
+    function selectExistingBook(el) {
+        document.getElementById('judul').value = el.dataset.judul;
+        document.getElementById('pengarang').value = el.dataset.pengarang;
+        document.getElementById('penerbit').value = el.dataset.penerbit;
+        document.getElementById('thn_terbit').value = el.dataset.thn;
+        document.getElementById('kategori').value = el.dataset.kategori;
+        document.getElementById('keterangan').value = el.dataset.keterangan;
+        document.getElementById('existing_book_search').value = el.textContent.trim();
+        closeAllDropdowns();
+    }
+
+    document.addEventListener('click', function(e) {
+        if (activeDropdown && !e.target.closest('#existingBookSelect')) {
+            closeAllDropdowns();
+        }
+    });
+</script>
 @endsection
+

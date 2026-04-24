@@ -14,12 +14,18 @@ class PinjamController extends Controller
         $query = Pinjam::with(['anggota', 'book']);
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->whereHas('book', function($q) use ($search) {
-                $q->where('judul', 'like', "%{$search}%");
-            })->orWhereHas('anggota', function($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%");
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereHas('book', function($sub) use ($search) {
+                    $sub->whereRaw('LOWER(judul) LIKE ?', ["%{$search}%"]);
+                })->orWhereHas('anggota', function($sub) use ($search) {
+                    $sub->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"]);
+                });
             });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
         $pinjam = $query->get();
@@ -29,7 +35,9 @@ class PinjamController extends Controller
     public function create()
     {
         $anggota = Anggota::all();
-        $books = Book::all();
+        // Only show books that are NOT currently borrowed
+        $borrowedBookIds = Pinjam::where('status', 'dipinjam')->pluck('book_id')->toArray();
+        $books = Book::whereNotIn('id', $borrowedBookIds)->get();
         return view('pinjam.create', compact('anggota', 'books'));
     }
 
@@ -44,6 +52,15 @@ class PinjamController extends Controller
             'required' => 'data tidak lengkap',
             'after_or_equal' => 'Tanggal kembali harus setelah tanggal pinjam',
         ]);
+
+        // Check if book is already borrowed
+        $alreadyBorrowed = Pinjam::where('book_id', $validated['book_id'])
+            ->where('status', 'dipinjam')
+            ->exists();
+
+        if ($alreadyBorrowed) {
+            return redirect()->back()->withInput()->with('error', 'Buku ini sedang dipinjam oleh orang lain!');
+        }
 
         $validated['status'] = 'dipinjam';
 

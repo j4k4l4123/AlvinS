@@ -13,11 +13,11 @@ class BookController extends Controller
 
         // Search functionality
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = strtolower($request->search);
             $query->where(function($q) use ($search) {
-                $q->where('judul', 'like', "%{$search}%")
-                  ->orWhere('pengarang', 'like', "%{$search}%")
-                  ->orWhere('kategori', 'like', "%{$search}%");
+                $q->whereRaw('LOWER(judul) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(pengarang) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(kategori) LIKE ?', ["%{$search}%"]);
             });
         }
 
@@ -38,7 +38,16 @@ class BookController extends Controller
 
     public function create()
     {
-        return view('books.create');
+        $books = Book::all();
+
+        $nextNum = 1;
+        $lastBook = Book::orderBy('id', 'desc')->first();
+        if ($lastBook && preg_match('/(\d+)/', $lastBook->id_buku, $matches)) {
+            $nextNum = (int) $matches[1] + 1;
+        }
+        $nextIdBuku = 'BKU' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+
+        return view('books.create', compact('books', 'nextIdBuku'));
     }
 
     public function store(Request $request)
