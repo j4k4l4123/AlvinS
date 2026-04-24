@@ -4,8 +4,8 @@
 <div class="form-container">
     <div class="form-header">
         <div class="form-icon">??</div>
-        <h2>Tambah Buku Baru</h2>
-        <p class="form-subtitle">Lengkapi informasi buku</p>
+        <h2>Tambah Anggota Baru</h2>
+        <p class="form-subtitle">Isi data anggota dengan lengkap</p>
     </div>
 
     @if($errors->any())
@@ -22,64 +22,48 @@
         </div>
     @endif
 
-    <form action="{{ route('books.store') }}" method="POST" class="styled-form">
+    <form action="{{ route('anggota.store') }}" method="POST" class="styled-form">
         @csrf
 
         <div class="form-row">
             <div class="form-group">
-                <label for="id_buku"><span class="label-icon">#??</span> ID Buku</label>
-                <input type="text" id="id_buku" name="id_buku" value="{{ old('id_buku') }}" placeholder="BKU001" required class="form-input">
+                <label for="id_anggota"><span class="label-icon">??</span> ID Anggota</label>
+                <input type="text" id="id_anggota" name="id_anggota" value="{{ old('id_anggota') }}" placeholder="Contoh: AGT001" required class="form-input">
             </div>
 
             <div class="form-group">
-                <label for="judul"><span class="label-icon">??</span> Judul Buku</label>
-                <input type="text" id="judul" name="judul" value="{{ old('judul') }}" placeholder="Judul lengkap" required class="form-input">
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label for="pengarang"><span class="label-icon">??</span> Pengarang</label>
-                <input type="text" id="pengarang" name="pengarang" value="{{ old('pengarang') }}" placeholder="Nama pengarang" required class="form-input">
-            </div>
-
-            <div class="form-group">
-                <label for="penerbit"><span class="label-icon">??</span> Penerbit</label>
-                <input type="text" id="penerbit" name="penerbit" value="{{ old('penerbit') }}" placeholder="Nama penerbit" required class="form-input">
+                <label for="nama"><span class="label-icon">??</span> Nama Lengkap</label>
+                <input type="text" id="nama" name="nama" value="{{ old('nama') }}" placeholder="Masukkan nama" required class="form-input">
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
-                <label for="thn_terbit"><span class="label-icon">??</span> Tahun Terbit</label>
-                <input type="number" id="thn_terbit" name="thn_terbit" value="{{ old('thn_terbit') }}" placeholder="2024" min="1900" max="{{ date('Y') + 1 }}" required class="form-input">
+                <label for="email"><span class="label-icon">??</span> Email</label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="email@example.com" required class="form-input">
             </div>
 
             <div class="form-group">
-                <label for="kategori"><span class="label-icon">???</span> Kategori</label>
-                <select id="kategori" name="kategori" required class="form-input">
-                    <option value="">Pilih Kategori</option>
-                    <option value="Fiksi" {{ old('kategori') == 'Fiksi' ? 'selected' : '' }}>Fiksi</option>
-                    <option value="Non-Fiksi" {{ old('kategori') == 'Non-Fiksi' ? 'selected' : '' }}>Non-Fiksi</option>
-                    <option value="Sains" {{ old('kategori') == 'Sains' ? 'selected' : '' }}>Sains</option>
-                    <option value="Teknologi" {{ old('kategori') == 'Teknologi' ? 'selected' : '' }}>Teknologi</option>
-                    <option value="Sejarah" {{ old('kategori') == 'Sejarah' ? 'selected' : '' }}>Sejarah</option>
-                    <option value="Biografi" {{ old('kategori') == 'Biografi' ? 'selected' : '' }}>Biografi</option>
-                    <option value="Lainnya" {{ old('kategori') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
-                </select>
+                <label for="telepon"><span class="label-icon">??</span> Nomor Telepon</label>
+                <input type="text" id="telepon" name="telepon" value="{{ old('telepon') }}" placeholder="08123456789" class="form-input">
             </div>
         </div>
 
         <div class="form-group full-width">
-            <label for="keterangan"><span class="label-icon">??</span> Keterangan (Opsional)</label>
-            <textarea id="keterangan" name="keterangan" rows="3" placeholder="Deskripsi singkat tentang buku" class="form-input textarea">{{ old('keterangan') }}</textarea>
+            <label for="alamat"><span class="label-icon">??</span> Alamat</label>
+            <textarea id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat lengkap" class="form-input textarea">{{ old('alamat') }}</textarea>
+        </div>
+
+        <div class="form-group full-width">
+            <label for="password"><span class="label-icon">??</span> Password</label>
+            <input type="password" id="password" name="password" placeholder="Minimal 6 karakter" required class="form-input">
         </div>
 
         <div class="form-actions">
-            <a href="{{ route('books.index') }}" class="btn-cancel">? Batal</a>
+            <a href="{{ route('anggota.index') }}" class="btn-cancel">? Batal</a>
             <button type="submit" class="btn-submit">
                 <span class="btn-icon">??</span>
-                Simpan Buku
+                Simpan Anggota
             </button>
         </div>
     </form>
@@ -180,9 +164,6 @@
     .form-input.textarea {
         resize: vertical;
         min-height: 100px;
-    }
-    select.form-input {
-        cursor: pointer;
     }
     .form-actions {
         display: flex;

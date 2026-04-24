@@ -36,3 +36,27 @@ Route::get('/books/{id}', [BookController::class, 'show'])->name('books.show');
 Route::get('/books/{id}/edit', [BookController::class, 'edit'])->name('books.edit');
 Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
 Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.destroy');
+// Anggota Routes
+Route::get('/anggota', [App\Http\Controllers\AnggotaController::class, 'index'])->name('anggota.index');
+Route::get('/anggota/create', [App\Http\Controllers\AnggotaController::class, 'create'])->name('anggota.create');
+Route::post('/anggota', [App\Http\Controllers\AnggotaController::class, 'store'])->name('anggota.store');
+Route::get('/anggota/{id}', [App\Http\Controllers\AnggotaController::class, 'show'])->name('anggota.show');
+Route::get('/anggota/{id}/edit', [App\Http\Controllers\AnggotaController::class, 'edit'])->name('anggota.edit');
+Route::put('/anggota/{id}', [App\Http\Controllers\AnggotaController::class, 'update'])->name('anggota.update');
+Route::delete('/anggota/{id}', [App\Http\Controllers\AnggotaController::class, 'destroy'])->name('anggota.destroy');
+
+// Pinjam Routes
+Route::get('/pinjam', [App\Http\Controllers\PinjamController::class, 'index'])->name('pinjam.index');
+Route::get('/pinjam/create', [App\Http\Controllers\PinjamController::class, 'create'])->name('pinjam.create');
+Route::post('/pinjam', [App\Http\Controllers\PinjamController::class, 'store'])->name('pinjam.store');
+Route::get('/pinjam/{id}', [App\Http\Controllers\PinjamController::class, 'show'])->name('pinjam.show');
+Route::get('/pinjam/{id}/edit', [App\Http\Controllers\PinjamController::class, 'edit'])->name('pinjam.edit');
+Route::put('/pinjam/{id}', [App\Http\Controllers\PinjamController::class, 'update'])->name('pinjam.update');
+Route::delete('/pinjam/{id}', [App\Http\Controllers\PinjamController::class, 'destroy'])->name('pinjam.destroy');
+
+// Pengembalian Routes
+Route::get('/pengembalian', [App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
+Route::get('/pengembalian/create', [App\Http\Controllers\PengembalianController::class, 'create'])->name('pengembalian.create');
+Route::post('/pengembalian', [App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
+Route::get('/pengembalian/{id}', [App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
+Route::delete('/pengembalian/{id}', [App\Http\Controllers\PengembalianController::class, 'destroy'])->name('pengembalian.destroy');

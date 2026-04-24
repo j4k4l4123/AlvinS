@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: tugas-laravel
+    runtime: docker
+    plan: free
+    autoDeploy: true

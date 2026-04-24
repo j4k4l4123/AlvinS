@@ -7,9 +7,32 @@ use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    public function books()
+    public function books(Request $request)
     {
-        $books = Book::all();
+        $query = Book::query();
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('pengarang', 'like', "%{$search}%")
+                  ->orWhere('kategori', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by category
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Sorting
+        $sort = $request->get('sort', 'judul');
+        $order = $request->get('order', 'asc');
+        $query->orderBy($sort, $order);
+
+        $books = $query->paginate(9)->withQueryString();
+        
         return view('books.index', compact('books'));
     }
 
@@ -21,7 +44,7 @@ class BookController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_buku' => 'required|string|max:255',
+            'id_buku' => 'required|string|max:255|unique:books',
             'judul' => 'required|string|max:255',
             'pengarang' => 'required|string|max:255',
             'penerbit' => 'required|string|max:255',
@@ -33,7 +56,7 @@ class BookController extends Controller
         ]);
 
         Book::create($validated);
-        return redirect()->route('books.index')->with('success', 'data berhasil di simpan');
+        return redirect()->route('books.index')->with('success', 'data berhasil disimpan');
     }
 
     public function show($id)
@@ -51,7 +74,7 @@ class BookController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'id_buku' => 'required|string|max:255',
+            'id_buku' => 'required|string|max:255|unique:books,id_buku,' . $id,
             'judul' => 'required|string|max:255',
             'pengarang' => 'required|string|max:255',
             'penerbit' => 'required|string|max:255',
@@ -64,13 +87,13 @@ class BookController extends Controller
 
         $book = Book::findOrFail($id);
         $book->update($validated);
-        return redirect()->route('books.index')->with('success', 'data berhasil di simpan');
+        return redirect()->route('books.index')->with('success', 'data berhasil disimpan');
     }
 
     public function destroy($id)
     {
         $book = Book::findOrFail($id);
         $book->delete();
-        return redirect()->route('books.index')->with('success', 'Book deleted successfully');
+        return redirect()->route('books.index')->with('success', 'data berhasil disimpan');
     }
 }
