@@ -2,13 +2,13 @@
 
 @section('content')
 <div class="page-header">
-    <h1>?? Daftar Buku</h1>
+    <h1>📚 Daftar Buku</h1>
     <a href="{{ route('books.create') }}" class="btn-add"><span class="icon">+</span> Tambah Buku</a>
 </div>
 
 <div class="search-filter-box">
     <form method="GET" action="{{ route('books.index') }}" class="search-form">
-        <input type="text" name="search" placeholder="?? Cari judul, pengarang, atau kategori..." value="{{ request('search') }}" class="search-input">
+        <input type="text" name="search" placeholder="🔍 Cari judul, pengarang, atau kategori..." value="{{ request('search') }}" class="search-input">
         
         <select name="kategori" class="filter-select">
             <option value="">Semua Kategori</option>
@@ -29,38 +29,37 @@
 
 @if(session('success'))
     <div class="alert-success">
-        <span class="alert-icon">?</span> {{ session('success') }}
+        <span class="alert-icon">✅</span> {{ session('success') }}
     </div>
 @endif
 
 @if($books->count() > 0)
-    <div class="books-grid">
+    <div class="items-grid">
         @foreach($books as $book)
-            <div class="book-card">
-                <div class="book-header">
-                    <span class="book-category">{{ $book->kategori }}</span>
-                    <span class="book-id">#{{ $book->id_buku }}</span>
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="status-badge">{{ $book->kategori }}</span>
+                    <span class="item-id">#{{ $book->id_buku }}</span>
                 </div>
                 
-                <div class="book-body">
-                    <h3 class="book-title">{{ $book->judul }}</h3>
-                    <p class="book-author">?? {{ $book->pengarang }}</p>
-                    <p class="book-publisher">?? {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
+                <div class="item-body">
+                    <h3 class="item-title">{{ $book->judul }}</h3>
+                    <p class="item-detail">✍️ {{ $book->pengarang }}</p>
+                    <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
                     
                     @if($book->keterangan)
-                        <p class="book-desc">{{ Str::limit($book->keterangan, 60) }}</p>
+                        <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
                     @endif
                 </div>
                 
-                <div class="book-actions">
-                    <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">?? Edit</a>
+                <div class="item-actions">
+                    <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">✏️ Edit</a>
                     <form action="{{ route('books.destroy', $book->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus buku ini?');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn-action btn-delete">??? Hapus</button>
+                        <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
                     </form>
                 </div>
-            </div>
         @endforeach
     </div>
     
@@ -69,7 +68,7 @@
     </div>
 @else
     <div class="empty-state">
-        <div class="empty-icon">??</div>
+        <div class="empty-icon">📚</div>
         <h3>Belum ada buku</h3>
         <p class="text-muted">Tambahkan buku pertama ke perpustakaan!</p>
         <a href="{{ route('books.create') }}" class="btn-add"><span class="icon">+</span> Tambah Buku</a>
@@ -176,12 +175,12 @@
     .alert-icon {
         margin-right: 10px;
     }
-    .books-grid {
+    .items-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
     }
-    .book-card {
+    .item-card {
         background: white;
         border-radius: 16px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -189,19 +188,19 @@
         border: 2px solid #dcfce7;
         transition: all 0.3s;
     }
-    .book-card:hover {
+    .item-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 15px 40px rgba(34, 197, 94, 0.15);
         border-color: #86efac;
     }
-    .book-header {
+    .item-header {
         background: linear-gradient(135deg, #f0fdf4, #dcfce7);
         padding: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    .book-category {
+    .status-badge {
         background: #22c55e;
         color: white;
         padding: 5px 12px;
@@ -209,41 +208,40 @@
         font-size: 12px;
         font-weight: 600;
     }
-    .book-id {
+    .item-id {
         color: #15803d;
         font-size: 13px;
         font-weight: 600;
     }
-    .book-body {
+    .item-body {
         padding: 20px;
     }
-    .book-title {
+    .item-title {
         color: #15803d;
         margin: 0 0 10px;
         font-size: 1.2rem;
         line-height: 1.4;
     }
-    .book-author {
-        color: #22c55e;
+    .item-detail {
+        color: #6b7280;
         margin: 5px 0;
         font-size: 14px;
     }
-    .book-publisher {
-        color: #6b7280;
-        margin: 5px 0;
-        font-size: 13px;
-    }
-    .book-desc {
+    .item-desc {
         color: #9ca3af;
         margin: 10px 0 0;
         font-size: 13px;
         font-style: italic;
     }
-    .book-actions {
+    .item-actions {
         padding: 15px 20px;
         background: #f0fdf4;
         display: flex;
         gap: 10px;
+    }
+    .item-actions form {
+        flex: 1;
+        display: flex;
     }
     .btn-action {
         flex: 1;
@@ -256,6 +254,7 @@
         cursor: pointer;
         text-align: center;
         transition: all 0.2s;
+        width: 100%;
     }
     .btn-edit {
         background: #dbeafe;
@@ -293,6 +292,9 @@
     .empty-state h3 {
         color: #15803d;
         margin-bottom: 10px;
+    }
+    .text-muted {
+        color: #6b7280;
     }
 </style>
 @endsection

@@ -2,67 +2,49 @@
 
 @section('content')
 <div class="page-header">
-    <h1>?? Daftar Anggota</h1>
+    <h1>👥 Daftar Anggota</h1>
     <a href="{{ route('anggota.create') }}" class="btn-add"><span class="icon">+</span> Tambah Anggota</a>
-</div>
-
-<div class="search-filter-box">
-    <form method="GET" action="{{ route('anggota.index') }}" class="search-form">
-        <input type="text" name="search" placeholder="?? Cari anggota..." value="{{ request('search') }}" class="search-input">
-        <button type="submit" class="btn-search">Cari</button>
-        @if(request('search'))
-            <a href="{{ route('anggota.index') }}" class="btn-reset">Reset</a>
-        @endif
-    </form>
 </div>
 
 @if(session('success'))
     <div class="alert-success">
-        <span class="alert-icon">?</span> {{ session('success') }}
+        <span class="alert-icon">✅</span> {{ session('success') }}
     </div>
 @endif
 
 @if($anggota->count() > 0)
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th class="sortable">ID Anggota <span class="sort-icon">??</span></th>
-                    <th class="sortable">Nama <span class="sort-icon">??</span></th>
-                    <th>Email</th>
-                    <th>Telepon</th>
-                    <th>Alamat</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($anggota as $a)
-                    <tr class="data-row">
-                        <td><span class="badge-id">{{ $a->id_anggota }}</span></td>
-                        <td><strong>{{ $a->nama }}</strong></td>
-                        <td>{{ $a->email }}</td>
-                        <td>{{ $a->telepon ?? '-' }}</td>
-                        <td><span class="text-muted">{{ Str::limit($a->alamat ?? '-', 25) }}</span></td>
-                        <td class="actions">
-                            <a href="{{ route('anggota.edit', $a->id) }}" class="btn-action btn-edit">?? Edit</a>
-                            <form action="{{ route('anggota.destroy', $a->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus anggota ini?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-action btn-delete">??? Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="items-grid">
+        @foreach($anggota as $a)
+            <div class="item-card">
+                <div class="item-header">
+                    <span class="badge-id">{{ $a->id_anggota }}</span>
+                    <span class="item-date">{{ $a->tanggal_daftar ? $a->tanggal_daftar->format('d-m-Y') : '-' }}</span>
+                </div>
+
+                <div class="item-body">
+                    <h3 class="item-title">{{ $a->nama }}</h3>
+                    <p class="item-detail">📞 {{ $a->no_tlp ?? '-' }}</p>
+                    <p class="item-detail">📍 {{ Str::limit($a->alamat ?? '-', 40) }}</p>
+                </div>
+
+                <div class="item-actions">
+                    <a href="{{ route('anggota.edit', $a->id) }}" class="btn-action btn-edit">✏️ Edit</a>
+                    <form action="{{ route('anggota.destroy', $a->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus anggota ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
     </div>
-    
+
     <div class="pagination-info">
-        <span class="text-muted">Showing {{ $anggota->firstItem() ?? 0 }} to {{ $anggota->lastItem() ?? 0 }} of {{ $anggota->total() }} entries</span>
+        <span class="text-muted">Showing {{ $anggota->count() }} anggota</span>
     </div>
 @else
     <div class="empty-state">
-        <div class="empty-icon">??</div>
+        <div class="empty-icon">📭</div>
         <h3>Belum ada anggota</h3>
         <p class="text-muted">Tambahkan anggota pertama Anda!</p>
         <a href="{{ route('anggota.create') }}" class="btn-add"><span class="icon">+</span> Tambah Anggota</a>
@@ -109,49 +91,6 @@
         margin-right: 8px;
         font-weight: bold;
     }
-    .search-filter-box {
-        background: #dcfce7;
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        border-left: 4px solid #22c55e;
-    }
-    .search-form {
-        display: flex;
-        gap: 10px;
-    }
-    .search-input {
-        flex: 1;
-        padding: 12px 15px;
-        border: 2px solid #86efac;
-        border-radius: 25px;
-        font-size: 14px;
-        outline: none;
-        transition: all 0.3s;
-    }
-    .search-input:focus {
-        border-color: #22c55e;
-        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-    }
-    .btn-search {
-        background: #22c55e;
-        color: white;
-        border: none;
-        padding: 12px 25px;
-        border-radius: 25px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
-    .btn-search:hover {
-        background: #16a34a;
-    }
-    .btn-reset {
-        color: #6b7280;
-        text-decoration: none;
-        padding: 12px 15px;
-        align-self: center;
-    }
     .alert-success {
         background: linear-gradient(135deg, #dcfce7, #bbf7d0);
         border: 2px solid #22c55e;
@@ -164,72 +103,80 @@
     .alert-icon {
         margin-right: 10px;
     }
-    .table-container {
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .item-card {
         background: white;
         border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         overflow: hidden;
         border: 2px solid #dcfce7;
+        transition: all 0.3s;
     }
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
+    .item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(34, 197, 94, 0.15);
+        border-color: #86efac;
     }
-    .data-table th {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
-        padding: 18px 15px;
-        text-align: left;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 13px;
-        letter-spacing: 0.5px;
-    }
-    .data-table th.sortable {
-        cursor: pointer;
-    }
-    .data-table th.sortable:hover {
-        background: linear-gradient(135deg, #16a34a, #15803d);
-    }
-    .sort-icon {
-        opacity: 0.7;
-        font-size: 12px;
-    }
-    .data-row {
-        transition: all 0.2s;
-    }
-    .data-row:hover {
-        background: #f0fdf4;
-        transform: scale(1.01);
-    }
-    .data-table td {
+    .item-header {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
         padding: 15px;
-        border-bottom: 1px solid #dcfce7;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     .badge-id {
-        background: #dcfce7;
-        color: #15803d;
-        padding: 6px 12px;
+        background: #22c55e;
+        color: white;
+        padding: 5px 12px;
         border-radius: 20px;
+        font-size: 12px;
         font-weight: 600;
+    }
+    .item-date {
+        color: #15803d;
         font-size: 13px;
+        font-weight: 600;
     }
-    .text-muted {
+    .item-body {
+        padding: 20px;
+    }
+    .item-title {
+        color: #15803d;
+        margin: 0 0 10px;
+        font-size: 1.2rem;
+        line-height: 1.4;
+    }
+    .item-detail {
         color: #6b7280;
+        margin: 5px 0;
+        font-size: 14px;
     }
-    .actions {
+    .item-actions {
+        padding: 15px 20px;
+        background: #f0fdf4;
         display: flex;
-        gap: 8px;
+        gap: 10px;
+    }
+    .item-actions form {
+        flex: 1;
+        display: flex;
     }
     .btn-action {
-        padding: 8px 14px;
+        flex: 1;
+        padding: 10px;
         border-radius: 8px;
         text-decoration: none;
         font-size: 13px;
-        font-weight: 500;
+        font-weight: 600;
         border: none;
         cursor: pointer;
+        text-align: center;
         transition: all 0.2s;
+        width: 100%;
     }
     .btn-edit {
         background: #dbeafe;
@@ -268,5 +215,10 @@
         color: #15803d;
         margin-bottom: 10px;
     }
+    .text-muted {
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
 </style>
 @endsection
+

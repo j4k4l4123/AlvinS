@@ -9,9 +9,20 @@ use Carbon\Carbon;
 
 class PengembalianController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pengembalian = Pengembalian::with(['anggota', 'book', 'pinjam'])->get();
+        $query = Pengembalian::with(['anggota', 'book', 'pinjam']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('book', function($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%");
+            })->orWhereHas('anggota', function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%");
+            });
+        }
+
+        $pengembalian = $query->get();
         return view('pengembalian.index', compact('pengembalian'));
     }
 

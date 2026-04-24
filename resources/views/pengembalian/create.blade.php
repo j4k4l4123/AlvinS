@@ -3,29 +3,32 @@
 @section('content')
 <div class="form-container">
     <div class="form-header">
-        <div class="form-icon">??</div>
+        <div class="form-icon">📥</div>
         <h2>Proses Pengembalian</h2>
         <p class="form-subtitle">Pilih peminjaman yang akan dikembalikan</p>
     </div>
 
     @if($errors->any())
         <div class="alert-error">
-            <span class="alert-icon">??</span>
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+            <span class="alert-icon">⚠️</span>
+            <div>
+                <strong>Oops! Ada kesalahan:</strong>
+                <ul class="error-list">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
     @if($pinjamList->count() > 0)
-        <form action="{{ route('pengembalian.store') }}" method="POST">
+        <form action="{{ route('pengembalian.store') }}" method="POST" class="styled-form">
             @csrf
 
-            <div class="form-group">
-                <label for="pinjam_id"><span class="label-icon">??</span> Pilih Peminjaman</label>
-                <select id="pinjam_id" name="pinjam_id" required>
+            <div class="form-group full-width">
+                <label for="pinjam_id"><span class="label-icon">📋</span> Pilih Peminjaman</label>
+                <select id="pinjam_id" name="pinjam_id" required class="form-input">
                     <option value="">-- Pilih Peminjaman --</option>
                     @foreach($pinjamList as $p)
                         <option value="{{ $p->id }}" {{ old('pinjam_id') == $p->id ? 'selected' : '' }}>
@@ -36,23 +39,26 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="tanggal_dikembalikan"><span class="label-icon">??</span> Tanggal Dikembalikan</label>
-                <input type="date" id="tanggal_dikembalikan" name="tanggal_dikembalikan" value="{{ old('tanggal_dikembalikan', date('Y-m-d')) }}" required>
+            <div class="form-group full-width">
+                <label for="tanggal_dikembalikan"><span class="label-icon">📅</span> Tanggal Dikembalikan</label>
+                <input type="date" id="tanggal_dikembalikan" name="tanggal_dikembalikan" value="{{ old('tanggal_dikembalikan', date('Y-m-d')) }}" required class="form-input">
             </div>
 
             <div class="info-box">
-                <p>?? Denda dihitung otomatis: Rp 5.000 per hari keterlambatan</p>
+                <span class="info-icon">💡</span> Denda dihitung otomatis: Rp 5.000 per hari keterlambatan
             </div>
 
             <div class="form-actions">
-                <a href="{{ route('pengembalian.index') }}" class="btn-cancel">? Batal</a>
-                <button type="submit" class="btn-submit">?? Proses</button>
+                <a href="{{ route('pengembalian.index') }}" class="btn-cancel">❌ Batal</a>
+                <button type="submit" class="btn-submit">
+                    <span class="btn-icon">✅</span>
+                    Proses Kembali
+                </button>
             </div>
         </form>
     @else
         <div class="alert-info">
-            <p>Tidak ada peminjaman yang aktif.</p>
+            <p>📭 Tidak ada peminjaman yang aktif.</p>
         </div>
         <a href="{{ route('pengembalian.index') }}" class="btn-back">Kembali</a>
     @endif
@@ -60,7 +66,7 @@
 
 <style>
     .form-container {
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto;
         background: linear-gradient(135deg, #f0fdf4, #dcfce7);
         border-radius: 24px;
@@ -79,31 +85,44 @@
     .form-header h2 {
         color: #15803d;
         margin: 0;
+        font-size: 1.8rem;
     }
     .form-subtitle {
         color: #22c55e;
+        margin: 10px 0 0;
     }
     .alert-error {
         background: linear-gradient(135deg, #fee2e2, #fecaca);
         border: 2px solid #ef4444;
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 20px;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
         color: #dc2626;
     }
-    .alert-info {
-        background: #dbeafe;
-        border: 2px solid #3b82f6;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        color: #1d4ed8;
-        text-align: center;
+    .alert-error .alert-icon {
+        font-size: 24px;
     }
-    form {
+    .error-list {
+        margin: 10px 0 0 20px;
+        padding: 0;
+    }
+    .error-list li {
+        margin-bottom: 5px;
+    }
+    .styled-form {
         display: flex;
         flex-direction: column;
         gap: 20px;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group.full-width {
+        grid-column: 1 / -1;
     }
     .form-group label {
         color: #15803d;
@@ -116,25 +135,35 @@
     .label-icon {
         font-size: 18px;
     }
-    select, input {
+    .form-input {
         padding: 14px 18px;
         border: 2px solid #bbf7d0;
         border-radius: 12px;
         font-size: 15px;
         background: white;
+        transition: all 0.3s;
         width: 100%;
     }
-    select:focus, input:focus {
+    .form-input:focus {
         outline: none;
         border-color: #22c55e;
         box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
     }
+    select.form-input {
+        cursor: pointer;
+    }
     .info-box {
         background: #fef3c7;
         border-left: 4px solid #f59e0b;
-        padding: 15px;
-        border-radius: 8px;
+        padding: 15px 20px;
+        border-radius: 12px;
         color: #92400e;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .info-icon {
+        font-size: 20px;
     }
     .form-actions {
         display: flex;
@@ -151,6 +180,11 @@
         border-radius: 12px;
         text-decoration: none;
         font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-cancel:hover {
+        background: #dc2626;
+        color: white;
     }
     .btn-submit {
         background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -160,7 +194,28 @@
         border-radius: 12px;
         font-weight: 600;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
         box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        transition: all 0.3s;
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+    }
+    .btn-icon {
+        font-size: 18px;
+    }
+    .alert-info {
+        background: #dbeafe;
+        border: 2px solid #3b82f6;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #1d4ed8;
+        text-align: center;
+        font-size: 15px;
     }
     .btn-back {
         display: block;
@@ -171,6 +226,12 @@
         border-radius: 12px;
         text-decoration: none;
         font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-back:hover {
+        background: #22c55e;
+        color: white;
     }
 </style>
 @endsection
+

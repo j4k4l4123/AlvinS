@@ -9,9 +9,20 @@ use Illuminate\Http\Request;
 
 class PinjamController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pinjam = Pinjam::with(['anggota', 'book'])->get();
+        $query = Pinjam::with(['anggota', 'book']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('book', function($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%");
+            })->orWhereHas('anggota', function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%");
+            });
+        }
+
+        $pinjam = $query->get();
         return view('pinjam.index', compact('pinjam'));
     }
 
