@@ -20,12 +20,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader \
     && npm install \
-    && npm run build \
-    && cp .env.example .env \
-    && php artisan key:generate --force \
-    && touch database/database.sqlite \
-    && php artisan storage:link || true
+    && npm run build
 
 EXPOSE 10000
 
-CMD sh -c "php artisan config:clear && php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"
+CMD sh -c 'if [ ! -f .env ]; then cp .env.example .env; fi && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan key:generate --force && php artisan serve --host 0.0.0.0 --port ${PORT:-10000}'
