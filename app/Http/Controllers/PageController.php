@@ -45,10 +45,6 @@ class PageController extends Controller
 
     public function dashboard()
     {
-        if (!session('is_logged_in')) {
-            return redirect('/login')->with('error', 'Please login first.');
-        }
-
         $userName = session('user_name', 'Guest');
 
         return view('dashboard', ['name' => $userName]);

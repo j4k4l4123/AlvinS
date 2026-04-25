@@ -39,6 +39,13 @@
         </div>
         <div class="body">
             <p class="note">Login to your learning dashboard and view your tasks, progress, and schedule in one place.</p>
+
+            @if($errors->any())
+                <div style="background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#991b1b;padding:10px 12px;font-size:.85rem;margin-bottom:10px;">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
             <form method="POST" action="{{ url('/login') }}">
                 @csrf
                 <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" placeholder="you@school.com" required autofocus></div>
@@ -46,7 +53,7 @@
                 <button type="submit" class="btn">Continue</button>
             </form>
             <div class="links"><a href="#">Need help?</a><a href="#">Privacy</a></div>
-            <div class="extra">Tip: You can enter any values to access the dashboard.</div>
+            <div class="extra">Tip: Use your registered credentials to access the dashboard.</div>
         </div>
     </div>
 </body>

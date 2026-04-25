@@ -1510,6 +1510,541 @@ body {
     }
 }
 
+/* ============================================
+   DASHBOARD — CINEMATIC SCROLL TRANSITION
+   ============================================ */
+
+/* ------------------------------------------
+   1. LAYOUT STATE MACHINE
+   ------------------------------------------ */
+
+/* Initial: sidebar fully off-screen */
+body.dashboard-page .sidebar {
+    transform: translate3d(-100%, 0, 0);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Initial: main content full-width */
+body.dashboard-page .main-content {
+    margin-left: 0;
+    transition: margin-left 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Scrolled: sidebar slides in with premium easing */
+body.dashboard-page.is-scrolled .sidebar {
+    transform: translate3d(0, 0, 0);
+}
+
+/* Scrolled: main content shifts to accommodate sidebar */
+body.dashboard-page.is-scrolled .main-content {
+    margin-left: 260px;
+}
+
+/* Ensure content-card has no top padding shift during transition */
+body.dashboard-page .content-card {
+    transition: padding 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------
+   2. HERO SECTION — 100vh CENTERED
+   ------------------------------------------ */
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 24px 60px;
+    overflow: hidden;
+    /* GPU layer for smooth compositing */
+    will-change: transform, opacity;
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                filter 0.7s ease;
+}
+
+/* Scrolled: hero scales down, fades out, blurs slightly */
+body.dashboard-page.is-scrolled .hero-section {
+    opacity: 0;
+    transform: scale(0.92) translateY(-40px);
+    filter: blur(6px);
+    pointer-events: none;
+}
+
+/* Decorative ambient glow behind hero text */
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 500px;
+    height: 500px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+    animation: heroGlowPulse 6s ease-in-out infinite;
+}
+
+@keyframes heroGlowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50%      { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+
+/* ---- Oversized Greeting Typography ---- */
+.hero-greeting {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1.05;
+    text-align: center;
+    color: var(--pu-forest);
+    margin: 0 0 16px;
+    animation: heroTextReveal 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-greeting .accent {
+    display: block;
+    background: linear-gradient(135deg, var(--pu-mint), var(--pu-neon));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes heroTextReveal {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+        filter: blur(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* Subtitle / tagline */
+.hero-tagline {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    font-weight: 500;
+    color: var(--pu-text-soft);
+    text-align: center;
+    margin: 0 0 56px;
+    letter-spacing: 0.3px;
+    animation: heroTextReveal 1s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ------------------------------------------
+   3. HERO MENU GRID — PREMIUM GLASSMORPHISM
+   ------------------------------------------ */
+.hero-menu-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+    width: 100%;
+    max-width: 640px;
+    animation: heroGridReveal 1s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes heroGridReveal {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+        filter: blur(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* ---- Premium Glassmorphism Cards ---- */
+.hero-menu-card {
+    position: relative;
+    background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.65) 0%,
+                rgba(255, 255, 255, 0.35) 100%);
+    backdrop-filter: blur(24px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    border: 1.5px solid rgba(255, 255, 255, 0.55);
+    border-radius: var(--pu-radius-xl);
+    padding: 40px 28px;
+    text-decoration: none;
+    color: var(--pu-forest);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    box-shadow:
+        0 8px 32px rgba(6, 78, 59, 0.08),
+        0 2px 8px rgba(6, 78, 59, 0.04),
+        inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    transition:
+        transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.35s ease,
+        background 0.35s ease;
+    overflow: hidden;
+    cursor: none;
+    min-height: 200px;
+}
+
+.hero-menu-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+                rgba(52, 211, 153, 0.12) 0%,
+                rgba(110, 231, 183, 0.04) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    border-radius: inherit;
+    z-index: 0;
+}
+
+/* Top-edge light reflection */
+.hero-menu-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.9),
+                transparent);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.hero-menu-card:hover {
+    transform: translateY(-10px) scale(1.04);
+    border-color: rgba(52, 211, 153, 0.5);
+    box-shadow:
+        0 24px 64px rgba(6, 78, 59, 0.14),
+        0 4px 12px rgba(6, 78, 59, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(255, 255, 255, 0.5) 100%);
+}
+
+.hero-menu-card:hover::before {
+    opacity: 1;
+}
+
+.hero-menu-card .card-icon {
+    font-size: 3.2rem;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    filter: drop-shadow(0 4px 8px rgba(6, 78, 59, 0.12));
+}
+
+.hero-menu-card:hover .card-icon {
+    transform: scale(1.2) rotate(-8deg) translateY(-4px);
+}
+
+.hero-menu-card .card-label {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: var(--pu-forest-deep);
+}
+
+.hero-menu-card .card-hint {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--pu-text-soft);
+    position: relative;
+    z-index: 1;
+    opacity: 0.8;
+    margin-top: -6px;
+}
+
+/* Staggered grid item entrance */
+.hero-menu-grid .hero-menu-card:nth-child(1) { animation-delay: 0.25s; }
+.hero-menu-grid .hero-menu-card:nth-child(2) { animation-delay: 0.35s; }
+.hero-menu-grid .hero-menu-card:nth-child(3) { animation-delay: 0.45s; }
+.hero-menu-grid .hero-menu-card:nth-child(4) { animation-delay: 0.55s; }
+
+/* ------------------------------------------
+   4. DASHBOARD REAL CONTENT (below fold)
+   ------------------------------------------ */
+.dashboard-real-content {
+    position: relative;
+    z-index: 1;
+    padding: 0 0 120px;
+    max-width: 1100px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(60px) scale(0.98);
+    filter: blur(4px);
+    pointer-events: none;
+    will-change: transform, opacity, filter;
+    transition:
+        opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+        transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
+        filter 0.7s ease 0.1s;
+}
+
+/* Scrolled: real content fades UP into view */
+body.dashboard-page.is-scrolled .dashboard-real-content {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    pointer-events: auto;
+}
+
+/* ---- Stats Grid ---- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.7) 0%,
+                rgba(255, 255, 255, 0.45) 100%);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--pu-radius-lg);
+    padding: 24px;
+    text-align: center;
+    box-shadow:
+        0 8px 30px rgba(6, 78, 59, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.35s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 16px 48px rgba(6, 78, 59, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--pu-forest);
+    line-height: 1;
+    margin-bottom: 6px;
+    letter-spacing: -1px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--pu-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+/* ---- Activity / Content Cards ---- */
+.dashboard-section-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--pu-forest);
+    margin: 0 0 20px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-section-title .section-icon {
+    font-size: 1.5rem;
+}
+
+.recent-activity-card {
+    background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.75) 0%,
+                rgba(255, 255, 255, 0.5) 100%);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: var(--pu-radius-xl);
+    padding: 28px;
+    box-shadow:
+        0 8px 30px rgba(6, 78, 59, 0.06),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(52, 211, 153, 0.12);
+    transition: background 0.2s ease;
+    border-radius: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background: rgba(52, 211, 153, 0.06);
+}
+
+.activity-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--pu-mint);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15);
+}
+
+.activity-text {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--pu-forest);
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: var(--pu-text-soft);
+    font-weight: 500;
+}
+
+/* ------------------------------------------
+   5. RESPONSIVE DASHBOARD
+   ------------------------------------------ */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    body.dashboard-page .sidebar,
+    body.dashboard-page.is-scrolled .sidebar {
+        transform: translate3d(-100%, 0, 0);
+    }
+
+    body.dashboard-page.is-scrolled .main-content {
+        margin-left: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .stat-card {
+        padding: 18px;
+    }
+
+    .stat-value {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-section {
+        min-height: auto;
+        padding: 100px 20px 50px;
+    }
+
+    .hero-greeting {
+        letter-spacing: -1.5px;
+    }
+
+    .hero-menu-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        max-width: 340px;
+    }
+
+    .hero-menu-card {
+        min-height: 140px;
+        padding: 28px 20px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 18px;
+    }
+
+    .hero-menu-card .card-icon {
+        font-size: 2.4rem;
+    }
+
+    .hero-menu-card .card-label {
+        text-align: left;
+        font-size: 1.1rem;
+    }
+
+    .hero-menu-card .card-hint {
+        text-align: left;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dashboard-real-content {
+        padding: 0 0 80px;
+    }
+}
+
+@media (max-width: 400px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .hero-section,
+    .hero-menu-grid,
+    .hero-menu-card,
+    .dashboard-real-content,
+    body.dashboard-page .sidebar,
+    body.dashboard-page .main-content {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    body.dashboard-page.is-scrolled .hero-section {
+        display: none;
+    }
+
+    body.dashboard-page.is-scrolled .dashboard-real-content {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        pointer-events: auto;
+    }
+}
+
+
+
 /* ===== UTILITIES ===== */
 .hidden {
     display: none !important;

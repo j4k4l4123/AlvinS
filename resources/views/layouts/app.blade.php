@@ -6,10 +6,10 @@
     <title>Book System</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body class="@yield('body-class')">
     <nav class="top-navbar" id="topNavbar">
         <button class="hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
-        <div class="navbar-brand">📚 PerpusKu</div>
+        <a href="{{ route('dashboard') }}" class="navbar-brand">📚 PerpusKu</a>
     </nav>
 
     <div class="app-wrapper" id="appWrapper">
@@ -180,7 +180,7 @@
 
         // ===== SPA Navigation System =====
         (function() {
-            const routeOrder = ['/books', '/anggota', '/pinjam', '/pengembalian'];
+            const routeOrder = ['/dashboard', '/books', '/anggota', '/pinjam', '/pengembalian'];
             let navigating = false;
             let currentUrl = window.location.href;
 
@@ -216,14 +216,16 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 const newCard = doc.querySelector('#contentCard');
                 const newTitle = doc.querySelector('title');
+                const newBody = doc.querySelector('body');
                 return {
                     content: newCard ? newCard.innerHTML : '',
-                    title: newTitle ? newTitle.textContent : 'Book System'
+                    title: newTitle ? newTitle.textContent : 'Book System',
+                    bodyClass: newBody ? newBody.className : ''
                 };
             }
 
             // Animate content transition
-            function animateTransition(direction, url, newContent, newTitle) {
+            function animateTransition(direction, url, newContent, newTitle, newBodyClass) {
                 if (navigating) return;
                 navigating = true;
 
@@ -238,6 +240,7 @@
                     // Swap content
                     card.innerHTML = newContent;
                     document.title = newTitle;
+                    document.body.className = newBodyClass;
                     history.pushState({ url: url }, newTitle, url);
                     currentUrl = url;
                     updateActiveLink(new URL(url).pathname);
@@ -270,7 +273,7 @@
                 if (navigating || url === currentUrl) return;
                 try {
                     const data = await fetchPage(url);
-                    animateTransition(direction, url, data.content, data.title);
+                    animateTransition(direction, url, data.content, data.title, data.bodyClass);
                 } catch (e) {
                     console.error('Navigation failed:', e);
                     window.location.href = url; // fallback
@@ -434,6 +437,29 @@
                 });
             });
 
+            // ===== Intercept navbar logo click =====
+            document.querySelectorAll('.navbar-brand').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    const href = link.getAttribute('href');
+                    if (!href) return;
+                    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+                    try {
+                        const url = new URL(href, window.location.href);
+                        if (url.origin !== window.location.origin) return;
+                    } catch (_) { return; }
+
+                    const path = normalizePath(new URL(href, window.location.href).pathname);
+                    if (!routeOrder.includes(path)) return;
+
+                    e.preventDefault();
+                    const currentIdx = getRouteIndex(window.location.pathname);
+                    const targetIdx = routeOrder.indexOf(path);
+                    const dir = (targetIdx < currentIdx) ? 'up' : 'down';
+                    navigateTo(href, dir);
+                });
+            });
+
             // ===== Handle browser back/forward =====
             window.addEventListener('popstate', function(e) {
                 if (e.state && e.state.url) {
@@ -453,6 +479,7 @@
                             setTimeout(function() {
                                 card.innerHTML = data.content;
                                 document.title = data.title;
+                                document.body.className = data.bodyClass;
                                 currentUrl = url;
                                 updateActiveLink(newPath);
                                 window.scrollTo(0, 0);
@@ -480,5 +507,5 @@
             currentUrl = window.location.href;
         })();
     </script>
+    @stack('scripts')
 </body>
-</html>
