@@ -56,7 +56,117 @@
         </main>
     </div>
 
+    <div class="custom-cursor" id="customCursor"></div>
+
     <script>
+        // ===== Custom Cursor =====
+        (function() {
+            const cursor = document.getElementById('customCursor');
+            if (!cursor) return;
+
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+
+            document.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            function animateCursor() {
+                cursorX += (mouseX - cursorX) * 0.15;
+                cursorY += (mouseY - cursorY) * 0.15;
+                cursor.style.left = cursorX + 'px';
+                cursor.style.top = cursorY + 'px';
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+
+            function onEnter() { cursor.classList.add('hovering'); }
+            function onLeave() { cursor.classList.remove('hovering'); }
+
+            function updateHoverTargets() {
+                const clickables = document.querySelectorAll('a, button, input, select, textarea, .hamburger-btn, .item-card, .btn-action, .btn-add, .btn-search, .btn-submit, .btn-cancel');
+                clickables.forEach(function(el) {
+                    el.removeEventListener('mouseenter', onEnter);
+                    el.removeEventListener('mouseleave', onLeave);
+                    el.addEventListener('mouseenter', onEnter);
+                    el.addEventListener('mouseleave', onLeave);
+                });
+            }
+
+            updateHoverTargets();
+            window.addEventListener('spaContentUpdated', updateHoverTargets);
+        })();
+
+        // ===== 3D Card Tilt Effect =====
+        (function() {
+            function onMouseMove(e) {
+                const card = e.currentTarget;
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = ((y - centerY) / centerY) * -6;
+                const rotateY = ((x - centerX) / centerX) * 6;
+
+                card.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale3d(1.02, 1.02, 1.02)';
+
+                card.querySelectorAll('.tilt-layer').forEach(function(layer, i) {
+                    const depth = (i + 1) * 12;
+                    layer.style.transform = 'translateZ(' + depth + 'px)';
+                });
+            }
+
+            function onMouseLeave(e) {
+                const card = e.currentTarget;
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+                card.querySelectorAll('.tilt-layer').forEach(function(layer) {
+                    layer.style.transform = 'translateZ(0)';
+                });
+            }
+
+            function initCardTilt() {
+                document.querySelectorAll('.item-card').forEach(function(card) {
+                    card.removeEventListener('mousemove', onMouseMove);
+                    card.removeEventListener('mouseleave', onMouseLeave);
+                    card.addEventListener('mousemove', onMouseMove);
+                    card.addEventListener('mouseleave', onMouseLeave);
+                });
+            }
+
+            initCardTilt();
+            window.addEventListener('spaContentUpdated', initCardTilt);
+        })();
+
+        // ===== Magnetic Button Effect =====
+        (function() {
+            function onMove(e) {
+                const btn = e.currentTarget;
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = 'translate(' + (x * 0.25) + 'px, ' + (y * 0.25) + 'px)';
+            }
+
+            function onLeave(e) {
+                e.currentTarget.style.transform = 'translate(0, 0)';
+            }
+
+            function initMagneticButtons() {
+                document.querySelectorAll('.btn-action, .btn-add, .btn-search, .btn-submit, .btn-cancel, .btn-back, .btn-return, .hamburger-btn').forEach(function(btn) {
+                    btn.removeEventListener('mousemove', onMove);
+                    btn.removeEventListener('mouseleave', onLeave);
+                    btn.addEventListener('mousemove', onMove);
+                    btn.addEventListener('mouseleave', onLeave);
+                });
+            }
+
+            initMagneticButtons();
+            window.addEventListener('spaContentUpdated', initMagneticButtons);
+        })();
+
         // ===== Sidebar Toggle =====
         function toggleSidebar() {
             const wrapper = document.getElementById('appWrapper');
@@ -86,9 +196,12 @@
                 const normalized = normalizePath(path);
                 document.querySelectorAll('#sidebarNav a').forEach(function(a) {
                     a.classList.remove('active');
-                    if (normalizePath(a.getAttribute('href')) === normalized) {
-                        a.classList.add('active');
-                    }
+                    try {
+                        const linkUrl = new URL(a.getAttribute('href'), window.location.href);
+                        if (normalizePath(linkUrl.pathname) === normalized) {
+                            a.classList.add('active');
+                        }
+                    } catch (_) {}
                 });
             }
 
@@ -138,6 +251,9 @@
 
                     // Re-attach form handlers and inline scripts in new content
                     reattachContentScripts();
+
+                    // Dispatch event for new effects to reinitialize
+                    window.dispatchEvent(new Event('spaContentUpdated'));
 
                     // Clean up enter animation
                     setTimeout(function() {
@@ -215,6 +331,9 @@
 
             function initScrollNavigation() {
                 if (scrollCleanup) scrollCleanup();
+
+                // Disable scroll navigation when search/filter params are present
+                if (window.location.search) return;
 
                 const currentPath = normalizePath(window.location.pathname);
                 const currentIdx = getRouteIndex(currentPath);
@@ -340,6 +459,7 @@
                                 card.classList.remove('page-exit-up', 'page-exit-down');
                                 card.classList.add(dir === 'up' ? 'page-enter-up' : 'page-enter-down');
                                 reattachContentScripts();
+                                window.dispatchEvent(new Event('spaContentUpdated'));
                                 setTimeout(function() {
                                     card.classList.remove('page-enter-up', 'page-enter-down');
                                     navigating = false;
@@ -362,4 +482,3 @@
     </script>
 </body>
 </html>
-

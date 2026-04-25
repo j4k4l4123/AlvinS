@@ -40,28 +40,27 @@
     <div class="items-grid">
         @foreach($books as $book)
             <div class="item-card">
-                <div class="item-header">
-                    <span class="status-badge">{{ $book->kategori }}</span>
-                    <span class="item-id">#{{ $book->id_buku }}</span>
-                </div>
-
-                <div class="item-body">
-                    <h3 class="item-title">{{ $book->judul }}</h3>
-                    <p class="item-detail">✍️ {{ $book->pengarang }}</p>
-                    <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
-
-                    @if($book->keterangan)
-                        <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
-                    @endif
-                </div>
-
-                <div class="item-actions">
-                    <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">✏️ Edit</a>
-                    <form action="{{ route('books.destroy', $book->id) }}" method="POST" onsubmit="return confirm('Hapus buku ini?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                    </form>
+                <div class="tilt-layer">
+                    <div class="item-header">
+                        <span class="status-badge">{{ $book->kategori }}</span>
+                        <span class="item-id">#{{ $book->id_buku }}</span>
+                    </div>
+                    <div class="item-body">
+                        <h3 class="item-title">{{ $book->judul }}</h3>
+                        <p class="item-detail">✍️ {{ $book->pengarang }}</p>
+                        <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
+                        @if($book->keterangan)
+                            <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
+                        @endif
+                    </div>
+                    <div class="item-actions">
+                        <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">✏️ Edit</a>
+                        <form action="{{ route('books.destroy', $book->id) }}" method="POST" onsubmit="return confirm('Hapus buku ini?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         @endforeach
@@ -79,4 +78,3 @@
     </div>
 @endif
 @endsection
-

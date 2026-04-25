@@ -1,20 +1,17 @@
-# Task List
+# UI/UX 2025 Revamp TODO
 
-## 1. Fix Books Search Empty State
-- [x] Update `resources/views/books/index.blade.php`
-- [x] Add dedicated "no search results" empty state with "Kembali" button
-- [x] Keep "Tambah Buku" button only for truly empty database
+- [x] Rewrite `resources/css/app.css` completely (glassmorphism, 3D tilt, magnetic buttons, complete component styles)
+- [x] Update `resources/views/layouts/app.blade.php` (custom cursor DOM + vanilla JS for cursor, tilt, magnetic effects)
+- [x] Update `resources/views/books/index.blade.php` (add `.tilt-layer` wrappers to cards)
 
-## 2. Add Top Navbar with Sidebar Toggle
-- [x] Update `resources/views/layouts/app.blade.php`
-- [x] Add top navbar with brand and hamburger (☰) button
-- [x] Remove floating sidebar toggle button
-- [x] Connect hamburger button to existing `toggleSidebar()` function
+## Completed
 
-## 3. Update CSS for Navbar + Sidebar Layout
-- [x] Update `resources/css/app.css`
-- [x] Add `.top-navbar` styles
-- [x] Remove old `.sidebar-toggle` fixed positioning styles
-- [x] Adjust `.main-content` to account for top navbar (`margin-top`)
-- [x] Ensure sidebar toggle from navbar works correctly
+1. **CSS (`resources/css/app.css`)**: Complete rewrite with glassmorphism sidebar/navbar, organic animated gradient blobs, bold 2025 typography with entrance animations, glassmorphic search inputs, 3D tilt card styles with `.tilt-layer` depth layers, ripple/magnetic button effects, complete form/detail/alert/empty-state/pagination component styles, and SPA page transition animations.
 
+2. **Layout (`resources/views/layouts/app.blade.php`)**: Added custom cursor DOM element. Injected three vanilla JS modules:
+   - Custom cursor tracking with lerp smoothing and hover state expansion
+   - 3D card tilt effect with Z-axis depth translation on `.tilt-layer` children
+   - Magnetic button effect with subtle pull-toward-cursor behavior
+   All modules auto-reinitialize via `spaContentUpdated` event after every SPA fetch-based page swap. Fixed `updateActiveLink` to resolve relative href URLs via `new URL()` before path comparison.
+
+3. **Books Index (`resources/views/books/index.blade.php`)**: Wrapped `.item-header`, `.item-body`, and `.item-actions` inside `.tilt-layer` div so the 3D parallax depth effect works correctly.

@@ -32,24 +32,26 @@
     <div class="items-grid">
         @foreach($anggota as $a)
             <div class="item-card">
-                <div class="item-header">
-                    <span class="status-badge">{{ $a->id_anggota }}</span>
-                    <span class="item-id">{{ $a->tanggal_daftar ? $a->tanggal_daftar->format('d-m-Y') : '-' }}</span>
-                </div>
+                <div class="tilt-layer">
+                    <div class="item-header">
+                        <span class="status-badge">{{ $a->id_anggota }}</span>
+                        <span class="item-id">{{ $a->tanggal_daftar ? $a->tanggal_daftar->format('d-m-Y') : '-' }}</span>
+                    </div>
 
-                <div class="item-body">
-                    <h3 class="item-title">{{ $a->nama }}</h3>
-                    <p class="item-detail">📞 {{ $a->no_tlp ?? '-' }}</p>
-                    <p class="item-detail">📍 {{ Str::limit($a->alamat ?? '-', 40) }}</p>
-                </div>
+                    <div class="item-body">
+                        <h3 class="item-title">{{ $a->nama }}</h3>
+                        <p class="item-detail">📞 {{ $a->no_tlp ?? '-' }}</p>
+                        <p class="item-detail">📍 {{ Str::limit($a->alamat ?? '-', 40) }}</p>
+                    </div>
 
-                <div class="item-actions">
-                    <a href="{{ route('anggota.edit', $a->id) }}" class="btn-action btn-edit">✏️ Edit</a>
-                    <form action="{{ route('anggota.destroy', $a->id) }}" method="POST" onsubmit="return confirm('Hapus anggota ini?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                    </form>
+                    <div class="item-actions">
+                        <a href="{{ route('anggota.edit', $a->id) }}" class="btn-action btn-edit">✏️ Edit</a>
+                        <form action="{{ route('anggota.destroy', $a->id) }}" method="POST" onsubmit="return confirm('Hapus anggota ini?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         @endforeach

@@ -41,6 +41,53 @@
         <div class="items-grid">
             @foreach($pengembalian as $p)
                 <div class="item-card">
+                    <div class="tilt-layer">
+                        <div class="item-header">
+                            @if($p->denda > 0)
+                                <span class="status-badge status-late">⚠️ Terlambat</span>
+                            @else
+                                <span class="status-badge status-ontime">✅ Tepat Waktu</span>
+                            @endif
+                            <span class="item-id">#{{ $p->id }}</span>
+                        </div>
+
+                        <div class="item-body">
+                            <h3 class="item-title">{{ Str::limit($p->book->judul, 25) }}</h3>
+                            <p class="item-user">👤 {{ $p->anggota->nama }}</p>
+                            <div class="item-dates">
+                                <p>📅 Pinjam: {{ $p->tanggal_pinjam->format('d-m-Y') }}</p>
+                                <p>🎯 Jatuh Tempo: {{ $p->tanggal_kembali->format('d-m-Y') }}</p>
+                                <p>✅ Dikembalikan: {{ $p->tanggal_dikembalikan->format('d-m-Y') }}</p>
+                            </div>
+                            <p class="item-denda">
+                                @if($p->denda > 0)
+                                    <span class="denda-amount">💰 Denda: Rp {{ number_format($p->denda, 0, ',', '.') }}</span>
+                                @else
+                                    <span class="no-denda">✨ Tidak ada denda</span>
+                                @endif
+                            </p>
+                        </div>
+
+                        <div class="item-actions">
+                            <a href="{{ route('pengembalian.show', $p->id) }}" class="btn-action btn-view">👁️ View</a>
+                            <form action="{{ route('pengembalian.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+@elseif($pengembalian->count() > 0)
+    {{-- Normal view: Returned Books Section --}}
+    <h2 style="color: #15803d; margin: 30px 0 15px; font-size: 1.3rem;">📥 Riwayat Pengembalian</h2>
+    <div class="items-grid">
+        @foreach($pengembalian as $p)
+            <div class="item-card">
+                <div class="tilt-layer">
                     <div class="item-header">
                         @if($p->denda > 0)
                             <span class="status-badge status-late">⚠️ Terlambat</span>
@@ -75,49 +122,6 @@
                             <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
                         </form>
                     </div>
-                </div>
-            @endforeach
-        </div>
-    @endif
-@elseif($pengembalian->count() > 0)
-    {{-- Normal view: Returned Books Section --}}
-    <h2 style="color: #15803d; margin: 30px 0 15px; font-size: 1.3rem;">📥 Riwayat Pengembalian</h2>
-    <div class="items-grid">
-        @foreach($pengembalian as $p)
-            <div class="item-card">
-                <div class="item-header">
-                    @if($p->denda > 0)
-                        <span class="status-badge status-late">⚠️ Terlambat</span>
-                    @else
-                        <span class="status-badge status-ontime">✅ Tepat Waktu</span>
-                    @endif
-                    <span class="item-id">#{{ $p->id }}</span>
-                </div>
-
-                <div class="item-body">
-                    <h3 class="item-title">{{ Str::limit($p->book->judul, 25) }}</h3>
-                    <p class="item-user">👤 {{ $p->anggota->nama }}</p>
-                    <div class="item-dates">
-                        <p>📅 Pinjam: {{ $p->tanggal_pinjam->format('d-m-Y') }}</p>
-                        <p>🎯 Jatuh Tempo: {{ $p->tanggal_kembali->format('d-m-Y') }}</p>
-                        <p>✅ Dikembalikan: {{ $p->tanggal_dikembalikan->format('d-m-Y') }}</p>
-                    </div>
-                    <p class="item-denda">
-                        @if($p->denda > 0)
-                            <span class="denda-amount">💰 Denda: Rp {{ number_format($p->denda, 0, ',', '.') }}</span>
-                        @else
-                            <span class="no-denda">✨ Tidak ada denda</span>
-                        @endif
-                    </p>
-                </div>
-
-                <div class="item-actions">
-                    <a href="{{ route('pengembalian.show', $p->id) }}" class="btn-action btn-view">👁️ View</a>
-                    <form action="{{ route('pengembalian.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                    </form>
                 </div>
             </div>
         @endforeach
