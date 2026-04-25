@@ -850,6 +850,10 @@ body {
     font-weight: 500;
 }
 
+.bottom-spacer {
+    height: 100px;
+}
+
 .text-muted {
     color: var(--pu-text-soft);
     font-size: 14px;

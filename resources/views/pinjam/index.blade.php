@@ -74,6 +74,10 @@
             </div>
         @endforeach
     </div>
+
+    <div class="pagination-info">
+        <span class="text-muted">Showing {{ $pinjam->count() }} peminjaman</span>
+    </div>
 @else
     <div class="empty-state">
         <div class="empty-icon">📭</div>
@@ -82,5 +86,7 @@
         <a href="{{ route('pinjam.create') }}" class="btn-add"><span class="icon">+</span> Pinjam Buku</a>
     </div>
 @endif
+
+<div class="bottom-spacer"></div>
 @endsection
 

@@ -67,7 +67,7 @@
     </div>
 
     <div class="pagination-info">
-        <span class="text-muted">Showing {{ $books->firstItem() ?? 0 }} to {{ $books->lastItem() ?? 0 }} of {{ $books->total() }} books</span>
+        <span class="text-muted">Showing {{ $books->count() }} books</span>
     </div>
 @else
     <div class="empty-state">
@@ -77,4 +77,7 @@
         <a href="{{ route('books.create') }}" class="btn-add"><span class="icon">+</span> Tambah Buku</a>
     </div>
 @endif
+
+<div class="bottom-spacer"></div>
 @endsection
+

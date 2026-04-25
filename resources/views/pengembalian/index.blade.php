@@ -134,5 +134,7 @@
         <a href="{{ route('pengembalian.create') }}" class="btn-add"><span class="icon">+</span> Proses Kembali</a>
     </div>
 @endif
+
+<div class="bottom-spacer"></div>
 @endsection
 

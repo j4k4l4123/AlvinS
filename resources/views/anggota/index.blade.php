@@ -68,5 +68,7 @@
         <a href="{{ route('anggota.create') }}" class="btn-add"><span class="icon">+</span> Tambah Anggota</a>
     </div>
 @endif
+
+<div class="bottom-spacer"></div>
 @endsection
 
