@@ -37,6 +37,18 @@
                 <span class="detail-value">{{ $book->thn_terbit }}</span>
             </div>
             <div class="detail-item">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">
+                    @if($book->isAvailable())
+                        <span class="status-badge status-available">✅ Tersedia</span>
+                    @else
+                        <span class="status-badge status-borrowed">⏳ Dipinjam</span>
+                    @endif
+                </span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-item">
                 <span class="detail-label">Dibuat</span>
                 <span class="detail-value">{{ $book->created_at->format('d-m-Y') }}</span>
             </div>

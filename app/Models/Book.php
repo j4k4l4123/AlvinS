@@ -15,4 +15,14 @@ class Book extends Model
         'kategori',
         'keterangan',
     ];
+
+    public function pinjam()
+    {
+        return $this->hasMany(Pinjam::class);
+    }
+
+    public function isAvailable(): bool
+    {
+        return !$this->pinjam()->where('status', 'dipinjam')->exists();
+    }
 }

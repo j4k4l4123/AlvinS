@@ -45,6 +45,13 @@
                         <span class="status-badge">{{ $book->kategori }}</span>
                         <span class="item-id">#{{ $book->id_buku }}</span>
                     </div>
+                    <div class="item-status-row" style="padding: 10px 22px 0;">
+                        @if($book->isAvailable())
+                            <span class="status-badge status-available">✅ Tersedia</span>
+                        @else
+                            <span class="status-badge status-borrowed">⏳ Dipinjam</span>
+                        @endif
+                    </div>
                     <div class="item-body">
                         <h3 class="item-title">{{ $book->judul }}</h3>
                         <p class="item-detail">✍️ {{ $book->pengarang }}</p>

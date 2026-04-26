@@ -9,7 +9,9 @@ class BookController extends Controller
 {
     public function books(Request $request)
     {
-        $query = Book::query();
+        $query = Book::with(['pinjam' => function ($q) {
+            $q->where('status', 'dipinjam');
+        }]);
 
         // Search functionality
         if ($request->filled('search')) {
