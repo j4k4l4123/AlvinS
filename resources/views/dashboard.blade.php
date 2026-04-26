@@ -14,7 +14,7 @@
 
     <!-- GREETING -->
     <p class="text-muted" style="margin-bottom: 20px;">
-        Welcome back, <strong>{{ $name }}</strong> 👋
+        Selamat datang kembali, <strong>{{ $name }}</strong> 👋
     </p>
 
     <!-- QUICK MENU -->
@@ -62,8 +62,8 @@
         <div class="item-card">
             <div class="tilt-layer">
                 <div class="item-body">
-                    <h3 class="item-title">1,248</h3>
-                    <p class="item-detail">Total Books</p>
+                    <h3 class="item-title">{{ number_format($totalBooks) }}</h3>
+                    <p class="item-detail">Total Buku</p>
                 </div>
             </div>
         </div>
@@ -71,8 +71,8 @@
         <div class="item-card">
             <div class="tilt-layer">
                 <div class="item-body">
-                    <h3 class="item-title">86</h3>
-                    <p class="item-detail">Active Loans</p>
+                    <h3 class="item-title">{{ number_format($activeLoans) }}</h3>
+                    <p class="item-detail">Sedang Dipinjam</p>
                 </div>
             </div>
         </div>
@@ -80,8 +80,8 @@
         <div class="item-card">
             <div class="tilt-layer">
                 <div class="item-body">
-                    <h3 class="item-title">342</h3>
-                    <p class="item-detail">Members</p>
+                    <h3 class="item-title">{{ number_format($members) }}</h3>
+                    <p class="item-detail">Anggota</p>
                 </div>
             </div>
         </div>
@@ -89,8 +89,8 @@
         <div class="item-card">
             <div class="tilt-layer">
                 <div class="item-body">
-                    <h3 class="item-title" style="color: var(--pu-danger);">12</h3>
-                    <p class="item-detail">Overdue</p>
+                    <h3 class="item-title" style="color: var(--pu-danger);">{{ number_format($overdue) }}</h3>
+                    <p class="item-detail">Terlambat</p>
                 </div>
             </div>
         </div>
@@ -99,22 +99,20 @@
 
     <!-- RECENT ACTIVITY -->
     <div class="content-card" style="padding: 20px;">
-        <h2 style="margin-bottom: 15px;">🔔 Recent Activity</h2>
+        <h2 style="margin-bottom: 15px;">🔔 Aktivitas Terbaru</h2>
 
-        <div class="activity-item">
-            <span class="activity-text">New borrowing — <strong>The Great Gatsby</strong></span>
-            <span class="activity-time">2 min ago</span>
-        </div>
-
-        <div class="activity-item">
-            <span class="activity-text">Returned — <strong>Clean Code</strong></span>
-            <span class="activity-time">15 min ago</span>
-        </div>
-
-        <div class="activity-item">
-            <span class="activity-text">New member — <strong>Rina</strong></span>
-            <span class="activity-time">1 hour ago</span>
-        </div>
+        @if($recentActivity->count() > 0)
+            @foreach($recentActivity as $activity)
+                <div class="activity-item">
+                    <span class="activity-text">{!! $activity['text'] !!}</span>
+                    <span class="activity-time">{{ $activity['time']->diffForHumans() }}</span>
+                </div>
+            @endforeach
+        @else
+            <div class="activity-item">
+                <span class="activity-text">Belum ada aktivitas.</span>
+            </div>
+        @endif
 
     </div>
 

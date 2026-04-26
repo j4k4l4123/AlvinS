@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Pengguna;
+use App\Models\Book;
+use App\Models\Pinjam;
+use App\Models\Anggota;
+use App\Models\Pengembalian;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class PageController extends Controller
 {
@@ -45,9 +50,61 @@ class PageController extends Controller
 
     public function dashboard()
     {
-        $userName = session('user_name', 'Guest');
+        $name = session('user_name', 'Guest');
 
-        return view('dashboard', ['name' => $userName]);
+        $totalBooks = Book::count();
+        $activeLoans = Pinjam::where('status', 'dipinjam')->count();
+        $members = Anggota::count();
+        $overdue = Pinjam::where('status', 'dipinjam')
+            ->whereDate('tanggal_kembali', '<', Carbon::today())
+            ->count();
+
+        // Recent activity: borrowings
+        $recentBorrowings = Pinjam::with(['book', 'anggota'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'type' => 'borrowing',
+                    'text' => 'Peminjaman baru — <strong>' . e($item->book->judul) . '</strong>',
+                    'time' => $item->created_at,
+                ];
+            });
+
+        // Recent activity: returns
+        $recentReturns = Pengembalian::with(['book', 'anggota'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'type' => 'return',
+                    'text' => 'Pengembalian — <strong>' . e($item->book->judul) . '</strong>',
+                    'time' => $item->created_at,
+                ];
+            });
+
+        // Recent activity: new members
+        $recentMembers = Anggota::latest()
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'type' => 'member',
+                    'text' => 'Anggota baru — <strong>' . e($item->nama) . '</strong>',
+                    'time' => $item->created_at,
+                ];
+            });
+
+        $recentActivity = $recentBorrowings
+            ->merge($recentReturns)
+            ->merge($recentMembers)
+            ->sortByDesc('time')
+            ->take(6)
+            ->values();
+
+        return view('dashboard', compact('name', 'totalBooks', 'activeLoans', 'members', 'overdue', 'recentActivity'));
     }
 
     public function logout()
