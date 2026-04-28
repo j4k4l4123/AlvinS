@@ -40,7 +40,7 @@
         <h2 style="color: #15803d; margin: 30px 0 15px; font-size: 1.3rem;">📥 Hasil Pencarian</h2>
         <div class="items-grid">
             @foreach($pengembalian as $p)
-                <div class="item-card">
+                <a href="{{ route('pengembalian.show', $p->id) }}" class="item-card" style="text-decoration: none; color: inherit;">
                     <div class="tilt-layer">
                         <div class="item-header">
                             @if($p->denda > 0)
@@ -68,16 +68,8 @@
                             </p>
                         </div>
 
-                        <div class="item-actions">
-                            <a href="{{ route('pengembalian.show', $p->id) }}" class="btn-action btn-view">👁️ View</a>
-                            <form action="{{ route('pengembalian.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                            </form>
-                        </div>
                     </div>
-                </div>
+                </a>
             @endforeach
         </div>
     @endif
@@ -86,7 +78,7 @@
     <h2 style="color: #15803d; margin: 30px 0 15px; font-size: 1.3rem;">📥 Riwayat Pengembalian</h2>
     <div class="items-grid">
         @foreach($pengembalian as $p)
-            <div class="item-card">
+            <a href="{{ route('pengembalian.show', $p->id) }}" class="item-card" style="text-decoration: none; color: inherit;">
                 <div class="tilt-layer">
                     <div class="item-header">
                         @if($p->denda > 0)
@@ -114,16 +106,8 @@
                         </p>
                     </div>
 
-                    <div class="item-actions">
-                        <a href="{{ route('pengembalian.show', $p->id) }}" class="btn-action btn-view">👁️ View</a>
-                        <form action="{{ route('pengembalian.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus data ini?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                        </form>
-                    </div>
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 @else

@@ -66,6 +66,11 @@
 
     <div class="detail-actions">
         <a href="{{ route('pengembalian.index') }}" class="btn-back">Kembali ke Daftar</a>
+        <form action="{{ route('pengembalian.destroy', $pengembalian->id) }}" method="POST" onsubmit="return confirm('Hapus data pengembalian ini?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+        </form>
     </div>
 </div>
 @endsection

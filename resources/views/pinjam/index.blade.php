@@ -42,7 +42,7 @@
 @elseif($pinjam->count() > 0)
     <div class="items-grid">
         @foreach($pinjam as $p)
-            <div class="item-card">
+            <a href="{{ route('pinjam.show', $p->id) }}" class="item-card" style="text-decoration: none; color: inherit;">
                 <div class="tilt-layer">
                     <div class="item-header">
                         @if($p->status == 'dipinjam')
@@ -62,16 +62,9 @@
                         </div>
                     </div>
 
-                    <div class="item-actions">
-                        <a href="{{ route('pinjam.edit', $p->id) }}" class="btn-action btn-edit">✏️ Edit</a>
-                        <form action="{{ route('pinjam.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus data peminjaman ini?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                        </form>
-                    </div>
+
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 

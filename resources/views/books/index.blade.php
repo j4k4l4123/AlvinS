@@ -39,7 +39,7 @@
 @elseif($books->count() > 0)
     <div class="items-grid">
         @foreach($books as $book)
-            <div class="item-card">
+            <a href="{{ route('books.show', $book->id) }}" class="item-card" style="text-decoration: none; color: inherit;">
                 <div class="tilt-layer">
                     <div class="item-header">
                         <span class="status-badge">{{ $book->kategori }}</span>
@@ -60,16 +60,9 @@
                             <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
                         @endif
                     </div>
-                    <div class="item-actions">
-                        <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">✏️ Edit</a>
-                        <form action="{{ route('books.destroy', $book->id) }}" method="POST" onsubmit="return confirm('Hapus buku ini?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                        </form>
-                    </div>
+
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 

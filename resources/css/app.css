@@ -723,17 +723,19 @@ body {
 .btn-action {
     position: relative;
     overflow: hidden;
-    padding: 10px 18px;
+    padding: 8px 16px;
     border-radius: 10px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     text-decoration: none;
     border: none;
     cursor: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: transform 0.15s ease, box-shadow 0.3s ease;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+    transition: all 0.2s ease;
 }
 
 .btn-edit {
@@ -1230,6 +1232,45 @@ body {
     padding: 0 4px;
 }
 
+.detail-actions form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+/* Uniform size for action buttons inside detail-actions */
+.detail-actions .btn-action,
+.detail-actions form .btn-action {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: var(--pu-radius-md);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.detail-actions form button {
+    margin: 0;
+}
+
+/* Make btn-back same size as action buttons */
+.detail-actions .btn-back {
+    padding: 12px 22px;
+    font-size: 14px;
+    line-height: 1;
+    border: none;
+    white-space: nowrap;
+}
+
+.detail-actions .btn-return {
+    padding: 12px 22px;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 /* ===== INFO BOXES & ALERTS ===== */
 .info-box {
     padding: 16px 20px;
@@ -1423,8 +1464,9 @@ body {
         flex-direction: column;
     }
 
-    .detail-actions .btn-back,
+    .detail-actions form,
     .detail-actions .btn-action,
+    .detail-actions .btn-back,
     .detail-actions .btn-return {
         width: 100%;
         justify-content: center;

@@ -31,7 +31,7 @@
 @elseif($anggota->count() > 0)
     <div class="items-grid">
         @foreach($anggota as $a)
-            <div class="item-card">
+            <a href="{{ route('anggota.show', $a->id) }}" class="item-card" style="text-decoration: none; color: inherit;">
                 <div class="tilt-layer">
                     <div class="item-header">
                         <span class="status-badge">{{ $a->id_anggota }}</span>
@@ -44,16 +44,9 @@
                         <p class="item-detail">📍 {{ Str::limit($a->alamat ?? '-', 40) }}</p>
                     </div>
 
-                    <div class="item-actions">
-                        <a href="{{ route('anggota.edit', $a->id) }}" class="btn-action btn-edit">✏️ Edit</a>
-                        <form action="{{ route('anggota.destroy', $a->id) }}" method="POST" onsubmit="return confirm('Hapus anggota ini?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-                        </form>
-                    </div>
+
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 

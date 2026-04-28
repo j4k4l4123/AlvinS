@@ -61,6 +61,11 @@
     <div class="detail-actions">
         <a href="{{ route('pinjam.index') }}" class="btn-back">← Kembali</a>
         <a href="{{ route('pinjam.edit', $pinjam->id) }}" class="btn-action btn-edit">✏️ Edit</a>
+        <form action="{{ route('pinjam.destroy', $pinjam->id) }}" method="POST" onsubmit="return confirm('Hapus data peminjaman ini?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+        </form>
         @if($pinjam->status == 'dipinjam')
             <a href="{{ route('pengembalian.create') }}" class="btn-return">📥 Kembalikan</a>
         @endif
