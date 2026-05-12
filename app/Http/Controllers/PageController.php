@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
-use App\Models\Pinjam;
 use App\Models\Anggota;
-use App\Models\Pengembalian;
+use App\Models\Book;
 use App\Models\MemberProfile;
+use App\Models\Pengembalian;
+use App\Models\Pinjam;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class PageController extends Controller
 {
@@ -20,6 +20,15 @@ class PageController extends Controller
     public function test()
     {
         return view('test');
+    }
+
+    public function logout(): RedirectResponse
+    {
+        Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Berhasil logout.');
     }
 
     public function dashboard()
@@ -43,7 +52,7 @@ class PageController extends Controller
                 ->map(function ($pinjam) {
                     return [
                         'type' => 'borrowing',
-                        'text' => 'Peminjaman baru – <strong>' . e($pinjam->book?->judul ?? 'Unknown') . '</strong>',
+                        'text' => 'Peminjaman baru - <strong>' . e($pinjam->book?->judul ?? 'Unknown') . '</strong>',
                         'time' => $pinjam->created_at,
                     ];
                 });
@@ -55,7 +64,7 @@ class PageController extends Controller
                 ->map(function ($pengembalian) {
                     return [
                         'type' => 'return',
-                        'text' => 'Pengembalian – <strong>' . e($pengembalian->book?->judul ?? 'Unknown') . '</strong>',
+                        'text' => 'Pengembalian - <strong>' . e($pengembalian->book?->judul ?? 'Unknown') . '</strong>',
                         'time' => $pengembalian->created_at,
                     ];
                 });
@@ -65,7 +74,7 @@ class PageController extends Controller
                 ->merge($recentMembers->map(function ($memberProfile) {
                     return [
                         'type' => 'member',
-                        'text' => 'Anggota baru – <strong>' . e($memberProfile->nama) . '</strong>',
+                        'text' => 'Anggota baru - <strong>' . e($memberProfile->nama) . '</strong>',
                         'time' => $memberProfile->created_at,
                     ];
                 }))
@@ -84,22 +93,6 @@ class PageController extends Controller
             ));
         }
 
-        $member = $user?->memberProfile;
-        $activeBorrowings = $member
-            ? Pinjam::where('anggota_id', $member->id_anggota)
-                ->where('status', 'dipinjam')
-                ->with('book')
-                ->latest()
-                ->get()
-            : collect();
-
-        $borrowingHistory = $member
-            ? Pinjam::where('anggota_id', $member->id_anggota)
-                ->with('book')
-                ->latest()
-                ->get()
-            : collect();
-
-        return view('member.dashboard', compact('member', 'activeBorrowings', 'borrowingHistory'));
+        return redirect()->route('member.dashboard');
     }
 }

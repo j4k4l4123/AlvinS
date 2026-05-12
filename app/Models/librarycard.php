@@ -2,4 +2,4 @@
 
 namespace App\Models;
 
-require_once __DIR__ . '/LibraryCard/LibraryCard.php';
+class_alias(\App\Models\LibraryCard\LibraryCard::class, __NAMESPACE__ . '\\LibraryCard');

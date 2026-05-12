@@ -8,16 +8,22 @@
 </div>
 
 @if($errors->any())
-    <div class="alert-error">{{ $errors->first() }}</div>
+    <div class="alert-error" style="margin-bottom: 16px;">
+        <ul style="margin:0; padding-left:18px;">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
 @endif
 
 <div class="content-card" style="max-width:720px;">
-    <p class="text-muted">Submit a cancellation request. This will be reviewed by a librarian.</p>
+    <p class="text-muted">Ajukan pembatalan keanggotaan. Permintaan akan diperiksa pustakawan. Pengajuan akan ditolak jika masih ada buku yang dipinjam atau denda belum selesai.</p>
 
     <form method="POST" action="{{ route('membership-requests.store') }}" style="margin-top:20px;">
         @csrf
         <div class="form-group">
-            <label for="reason">Reason</label>
+            <label for="reason">Alasan</label>
             <textarea name="reason" id="reason" rows="5" class="search-input" required>{{ old('reason') }}</textarea>
         </div>
 

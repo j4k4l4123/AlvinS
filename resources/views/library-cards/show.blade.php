@@ -23,8 +23,13 @@
         <p class="item-detail">Active now: {{ $card->isActive() ? 'Yes' : 'No' }}</p>
     </div>
 
-    <div style="margin-top:20px;">
-        <a href="{{ route('library-cards.index') }}" class="btn-back">Back</a>
+    <div style="margin-top:20px; display:flex; gap:12px;">
+        @if(request()->routeIs('member.library-card'))
+            <button onclick="window.print()" class="btn-submit" type="button">Print Card</button>
+            <a href="{{ route('member.dashboard') }}" class="btn-back">Back</a>
+        @else
+            <a href="{{ route('library-cards.index') }}" class="btn-back">Back</a>
+        @endif
     </div>
 </div>
 @endsection

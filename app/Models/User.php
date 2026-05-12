@@ -2,11 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\LibraryCard\LibraryCard;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use Notifiable;
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'email',
@@ -26,19 +34,29 @@ class User extends Authenticatable
         ];
     }
 
-    public function roles()
+    public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'role_user');
     }
 
-    public function memberProfile()
+    public function memberProfile(): HasOne
     {
         return $this->hasOne(MemberProfile::class);
     }
 
-    public function libraryCards()
+    public function anggota(): HasOne
+    {
+        return $this->hasOne(Anggota::class);
+    }
+
+    public function libraryCards(): HasMany
     {
         return $this->hasMany(LibraryCard::class);
+    }
+
+    public function membershipRequests(): HasMany
+    {
+        return $this->hasMany(MembershipRequest::class);
     }
 
     public function hasRole(Role|string $role): bool
@@ -75,4 +93,3 @@ class User extends Authenticatable
         return $this->hasRole('member');
     }
 }
-

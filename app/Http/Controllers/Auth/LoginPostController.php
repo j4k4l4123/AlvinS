@@ -3,38 +3,31 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
-use Illuminate\Http\Request;
+use App\Http\Requests\LoginRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class LoginPostController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(LoginRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string', 'min:6'],
-        ]);
-
+        $credentials = $request->validated();
         $remember = $request->boolean('remember');
 
-        // Laravel handles password hashing verification securely.
-        $credentials = $request->only('email', 'password');
-
-        if (!Auth::attempt($credentials, $remember)) {
-            return back()->withErrors(['email' => 'Invalid credentials.'])->withInput();
+        if (! Auth::attempt($credentials, $remember)) {
+            return back()->withErrors([
+                'email' => 'Email atau password tidak valid.',
+            ])->onlyInput('email');
         }
+
+        $request->session()->regenerate();
 
         $user = $request->user();
-        $role = $user->roles()->first();
 
-        // Role-based redirect after login.
-        if ($role && $role->name === 'librarian') {
-            return redirect()->route('librarian.dashboard');
+        if ($user?->isLibrarian()) {
+            return redirect()->intended(route('librarian.dashboard'));
         }
 
-        return redirect()->route('member.dashboard');
+        return redirect()->intended(route('member.dashboard'));
     }
 }
-

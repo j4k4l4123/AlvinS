@@ -26,15 +26,4 @@ class MemberProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function borrowings()
-    {
-        return $this->hasMany(Pinjam::class, 'anggota_id', 'id_anggota');
-    }
-
-    public function returns()
-    {
-        return $this->hasMany(Pengembalian::class, 'anggota_id', 'id_anggota');
-    }
 }
-

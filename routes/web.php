@@ -1,21 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\BookController;
-use App\Http\Controllers\MemberController;
-use App\Http\Controllers\LibraryCardController;
-use App\Http\Controllers\MembershipRequestController;
 use App\Http\Controllers\AnggotaController;
-use App\Http\Controllers\PinjamController;
-use App\Http\Controllers\PengembalianController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginPostController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\LibraryCardController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MembershipRequestController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PengembalianController;
+use App\Http\Controllers\PinjamController;
 use App\Http\Middleware\LibrarianMiddleware;
 use App\Http\Middleware\MemberMiddleware;
 use App\Http\Middleware\RoleBasedRedirect;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/', [PageController::class, 'login']);
@@ -28,7 +28,7 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
-    Route::get('/password/reset', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
@@ -102,4 +102,3 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
 });
 
 Route::get('/test', [PageController::class, 'test']);
-

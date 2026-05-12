@@ -1,59 +1,145 @@
 @extends('layouts.app')
+
 @section('title', 'Member Dashboard - PerpusKu')
-@section('body-class', 'dashboard-page')
+
 @section('content')
-<div class='page-header'>
+<div class="page-header">
     <h1>Member Dashboard</h1>
-    <p class='text-muted'>Welcome back, {{ auth()->user()->name }}</p>
+    <p class="text-muted">Selamat datang kembali, {{ auth()->user()->name }}</p>
 </div>
-@if(\C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1)
-<div class='items-grid' style='margin-bottom: 30px;'>
-    <div class='item-card' style='grid-column: span 2;'>
-        <div class='tilt-layer'><div class='item-body'>
-            <h3 class='item-title'>My Profile</h3>
-            <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;'>
-                <div><strong>ID:</strong> {{ \C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->id_anggota ?? '-' }}</div>
-                <div><strong>Name:</strong> {{ \C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->nama ?? '-' }}</div>
-                <div><strong>Address:</strong> {{ \C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->alamat ?? '-' }}</div>
-                <div><strong>Phone:</strong> {{ \C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->no_tlp ?? '-' }}</div>
-                <div><strong>Registered:</strong> {{ \C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->tanggal_daftar?->format('d/m/Y') ?? '-' }}</div>
-                <div><strong>Status:</strong> <span class='status-badge {{ \C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->membership_status === " cancelled\ ? \status-borrowed\ : \status-available\ }}'>{{ ucfirst(\C:\Users\ALVIN DWI LINTANG H\OneDrive\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1->membership_status ?? 'active') }}</span></div>
- </div>
- </div></div>
- </div>
+
+@if(session('success'))
+    <div class="alert-success" style="margin-bottom: 16px;">
+        <span class="alert-icon">✅</span> {{ session('success') }}
+    </div>
+@endif
+
+@if($profile)
+<div class="content-card" style="padding: 20px; margin-bottom: 24px;">
+    <h2 style="margin-bottom: 16px;">Profil Anggota</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+        <div><strong>ID Anggota:</strong> {{ $profile->id_anggota ?? '-' }}</div>
+        <div><strong>Nama:</strong> {{ $profile->nama ?? '-' }}</div>
+        <div><strong>Alamat:</strong> {{ $profile->alamat ?? '-' }}</div>
+        <div><strong>No. Telepon:</strong> {{ $profile->no_tlp ?? '-' }}</div>
+        <div><strong>Tanggal Daftar:</strong> {{ $profile->tanggal_daftar?->format('d/m/Y') ?? '-' }}</div>
+        <div>
+            <strong>Status:</strong>
+            <span class="status-badge {{ ($profile->membership_status ?? 'active') === 'active' ? 'status-available' : 'status-borrowed' }}">
+                {{ ucfirst(str_replace('_', ' ', $profile->membership_status ?? 'active')) }}
+            </span>
+        </div>
+    </div>
 </div>
 @endif
-<div class='items-grid' style='margin-bottom: 30px;'>
- <a href='{{ route(\books.index\) }}' class='item-card'><div class='tilt-layer'><div class='item-body'><h3 class='item-title'>Browse Books</h3><p class='item-detail'>View available books</p></div></div></a>
- <a href='{{ route(\pinjam.index\) }}' class='item-card'><div class='tilt-layer'><div class='item-body'><h3 class='item-title'>My Borrowings</h3><p class='item-detail'>View active loans</p></div></div></a>
- <a href='{{ route(\member.history\) }}' class='item-card'><div class='tilt-layer'><div class='item-body'><h3 class='item-title'>Borrowing History</h3><p class='item-detail'>Past returns & fines</p></div></div></a>
- <a href='{{ route(\member.library-card\) }}' class='item-card'><div class='tilt-layer'><div class='item-body'><h3 class='item-title'>My Library Card</h3><p class='item-detail'>View card details</p></div></div></a>
+
+<div class="items-grid" style="margin-bottom: 24px;">
+    <a href="{{ route('member.books.index') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Cari Buku</h3><p class="item-detail">Telusuri katalog perpustakaan</p></div></div>
+    </a>
+    <a href="{{ route('member.library-card') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Kartu Perpustakaan</h3><p class="item-detail">Lihat kartu digital dan masa berlaku</p></div></div>
+    </a>
+    <a href="{{ route('member.cancel-membership') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Batalkan Keanggotaan</h3><p class="item-detail">Ajukan pembatalan ke pustakawan</p></div></div>
+    </a>
 </div>
-<div class='content-card' style='padding: 20px; margin-bottom: 20px;'>
- <h2 style='margin-bottom: 15px;'>Active Borrowings</h2>
- @if(\->count() > 0)
- <div class='table-responsive'><table><thead><tr><th>#</th><th>Book</th><th>Borrowed On</th><th>Due Date</th><th>Status</th></tr></thead><tbody>
- @foreach(\ as \)
- <tr><td>{{ \->iteration }}</td><td>{{ \->book?->judul ?? '-' }}</td><td>{{ \->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td><td>{{ \->tanggal_kembali?->format('d/m/Y') ?? '-' }}</td>
- <td>@if(\->isOverdue())<span class='status-badge' style='background: var(--pu-danger);'>Overdue ({{ \->daysOverdue() }} days)</span>@else<span class='status-badge status-available'>On Time</span>@endif</td></tr>
- @endforeach
- </tbody></table></div>
- @else
- <div class='empty-state'><div class='empty-icon'>??</div><h3>No active borrowings</h3><p class='text-muted'>You haven't borrowed any books yet.</p><a href='{{ route(\books.index\) }}' class='btn-add'><span class='icon'>+</span> Browse Books</a></div>
- @endif
+
+<div class="content-card" style="padding: 20px; margin-bottom: 24px;">
+    <h2 style="margin-bottom: 16px;">Ringkasan</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+        <div><strong>Peminjaman aktif:</strong><br>{{ method_exists($activeBorrowings, 'total') ? $activeBorrowings->total() : $activeBorrowings->count() }}</div>
+        <div><strong>Total riwayat:</strong><br>{{ method_exists($borrowingHistory, 'total') ? $borrowingHistory->total() : $borrowingHistory->count() }}</div>
+        <div><strong>Total denda:</strong><br>Rp {{ number_format($totalFines, 0, ',', '.') }}</div>
+        <div><strong>Status kartu:</strong><br>{{ $libraryCard?->status ? ucfirst($libraryCard->status) : 'Belum tersedia' }}</div>
+    </div>
+
+    @if($pendingCancellation)
+        <div class="alert-error" style="margin-top: 16px;">
+            Permintaan pembatalan keanggotaan sedang diproses.
+        </div>
+    @endif
 </div>
-<div class='content-card' style='padding: 20px;'>
- <h2 style='margin-bottom: 15px;'>Borrowing History</h2>
- @if(\->count() > 0)
- <div class='table-responsive'><table><thead><tr><th>#</th><th>Book</th><th>Borrowed</th><th>Returned</th><th>Fine</th></tr></thead><tbody>
- @foreach(\ as \)
- <tr><td>{{ \->iteration }}</td><td>{{ \->book?->judul ?? '-' }}</td><td>{{ \->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
- <td>{{ \->status === 'dikembalikan' ? (\->pengembalian?->tanggal_dikembalikan?->format('d/m/Y') ?? '-') : 'Not returned' }}</td>
- <td>@if(\->pengembalian && \->pengembalian->denda > 0)<span style='color: var(--pu-danger); font-weight: bold;'>Rp {{ number_format(\->pengembalian->denda, 0, ',', '.') }}</span>@else<span style='color: var(--pu-success);'>Paid</span>@endif</td></tr>
- @endforeach
- </tbody></table></div>
- @else
- <div class='empty-state'><div class='empty-icon'>??</div><h3>No borrowing history</h3></div>
- @endif
+
+<div class="content-card" style="padding: 20px; margin-bottom: 24px;">
+    <h2 style="margin-bottom: 16px;">Peminjaman Aktif</h2>
+    @if(method_exists($activeBorrowings, 'count') && $activeBorrowings->count() > 0)
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Buku</th>
+                        <th>Tanggal Pinjam</th>
+                        <th>Jatuh Tempo</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($activeBorrowings as $borrowing)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $borrowing->book?->judul ?? '-' }}</td>
+                            <td>{{ $borrowing->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
+                            <td>{{ $borrowing->tanggal_kembali?->format('d/m/Y') ?? '-' }}</td>
+                            <td>
+                                @if($borrowing->isOverdue())
+                                    <span class="status-badge status-borrowed">Overdue ({{ $borrowing->daysOverdue() }} hari)</span>
+                                @else
+                                    <span class="status-badge status-available">On Time</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @if(method_exists($activeBorrowings, 'links'))
+            <div style="margin-top: 16px;">{{ $activeBorrowings->links() }}</div>
+        @endif
+    @else
+        <p class="text-muted">Belum ada peminjaman aktif.</p>
+    @endif
+</div>
+
+<div class="content-card" style="padding: 20px;">
+    <h2 style="margin-bottom: 16px;">Riwayat Peminjaman</h2>
+    @if(method_exists($borrowingHistory, 'count') && $borrowingHistory->count() > 0)
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Buku</th>
+                        <th>Dipinjam</th>
+                        <th>Dikembalikan</th>
+                        <th>Denda</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($borrowingHistory as $history)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $history->book?->judul ?? '-' }}</td>
+                            <td>{{ $history->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
+                            <td>{{ $history->pengembalian?->tanggal_dikembalikan?->format('d/m/Y') ?? 'Belum kembali' }}</td>
+                            <td>
+                                @if(($history->pengembalian?->denda ?? 0) > 0)
+                                    <span style="color: #dc2626; font-weight: 700;">Rp {{ number_format($history->pengembalian->denda, 0, ',', '.') }}</span>
+                                @else
+                                    <span style="color: #16a34a;">Rp 0</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @if(method_exists($borrowingHistory, 'links'))
+            <div style="margin-top: 16px;">{{ $borrowingHistory->links() }}</div>
+        @endif
+    @else
+        <p class="text-muted">Belum ada riwayat peminjaman.</p>
+    @endif
 </div>
 @endsection

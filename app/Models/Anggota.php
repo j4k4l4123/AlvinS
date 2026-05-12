@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\LibraryCard\LibraryCard;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Anggota extends Model
 {
@@ -41,7 +43,17 @@ class Anggota extends Model
         return $this->hasMany(Pengembalian::class);
     }
 
-    public function activeBorrowings()
+    public function libraryCard(): HasOne
+    {
+        return $this->hasOne(LibraryCard::class, 'anggota_id');
+    }
+
+    public function membershipRequests(): HasMany
+    {
+        return $this->hasMany(MembershipRequest::class);
+    }
+
+    public function activeBorrowings(): HasMany
     {
         return $this->pinjam()->where('status', 'dipinjam');
     }
@@ -54,4 +66,3 @@ class Anggota extends Model
         });
     }
 }
-

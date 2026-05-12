@@ -21,7 +21,7 @@ class BorrowingService
     ): Pinjam {
         return DB::transaction(function () use ($anggotaId, $bookId, $tanggalPinjam, $tanggalKembali) {
             $book = Book::findOrFail($bookId);
-            $anggota = Anggota::findOrFail($anggotaId);
+            $anggota = Anggota::with(['user.memberProfile', 'libraryCard'])->findOrFail($anggotaId);
 
             if (! $book->isAvailable()) {
                 throw new \Exception('Buku "' . $book->judul . '" sedang dipinjam oleh anggota lain.');
@@ -36,11 +36,14 @@ class BorrowingService
             }
 
             $user = $anggota->user;
-            if ($user && $user->roles()->where('name', 'member')->exists()) {
-                $memberProfile = $user->memberProfile;
-                if ($memberProfile && ($memberProfile->membership_status ?? 'active') === 'cancelled') {
-                    throw new \Exception('Keanggotaan telah dibatalkan. Tidak dapat meminjam buku.');
-                }
+            $memberProfile = $user?->memberProfile;
+
+            if ($memberProfile && ($memberProfile->membership_status ?? 'active') !== 'active') {
+                throw new \Exception('Status keanggotaan anggota tidak aktif. Tidak dapat meminjam buku.');
+            }
+
+            if ($anggota->libraryCard && ! $anggota->libraryCard->isActive()) {
+                throw new \Exception('Kartu perpustakaan anggota tidak aktif atau sudah kedaluwarsa.');
             }
 
             $borrowDate = $tanggalPinjam ? Carbon::parse($tanggalPinjam) : Carbon::today();

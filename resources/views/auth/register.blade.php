@@ -1,54 +1,52 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-</head>
-<body>
-<h1>Register</h1>
+@extends('layouts.app')
 
-@if($errors->any())
-    <div style="color:red;">
-        <ul>
-            @foreach($errors->all() as $e)
-                <li>{{ $e }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+@section('title', 'Register - PerpusKu')
 
-<form method="POST" action="{{ route('register.post') }}">
-    @csrf
-
-    <div>
-        <label>Name</label>
-        <input name="name" value="{{ old('name') }}" required>
-    </div>
-    <div>
-        <label>Email</label>
-        <input type="email" name="email" value="{{ old('email') }}" required>
-    </div>
-    <div>
-        <label>Password</label>
-        <input type="password" name="password" required>
-    </div>
-    <div>
-        <label>Confirm Password</label>
-        <input type="password" name="password_confirmation" required>
-    </div>
-    <div>
-        <label>Role</label>
-        <select name="role" required>
-            <option value="member" {{ old('role')==='member'?'selected':'' }}>Member</option>
-            <option value="librarian" {{ old('role')==='librarian'?'selected':'' }}>Librarian</option>
-        </select>
+@section('content')
+<div class="content-card" style="max-width: 640px; margin: 40px auto; padding: 24px;">
+    <div class="page-header" style="margin-bottom: 20px;">
+        <h1>Daftar Anggota</h1>
+        <p class="text-muted">Buat akun member untuk mengakses katalog, peminjaman, dan kartu perpustakaan digital.</p>
     </div>
 
-    <button type="submit">Create account</button>
-</form>
+    @if($errors->any())
+        <div class="alert-error" style="margin-bottom: 16px;">
+            <ul style="margin:0; padding-left: 18px;">
+                @foreach($errors->all() as $e)
+                    <li>{{ $e }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-<p><a href="{{ route('login') }}">Already have an account? Login</a></p>
-</body>
-</html>
+    <form method="POST" action="{{ route('register.post') }}">
+        @csrf
 
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label for="name">Nama</label>
+            <input id="name" name="name" value="{{ old('name') }}" required class="search-input" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" value="{{ old('email') }}" required class="search-input" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" required class="search-input" />
+            <small class="text-muted">Minimal 8 karakter, huruf besar, huruf kecil, angka, dan simbol.</small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="password_confirmation">Konfirmasi Password</label>
+            <input id="password_confirmation" type="password" name="password_confirmation" required class="search-input" />
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center;">
+            <button type="submit" class="btn-submit">Daftar</button>
+            <a href="{{ route('login') }}" class="btn-cancel">Sudah punya akun?</a>
+        </div>
+    </form>
+</div>
+@endsection

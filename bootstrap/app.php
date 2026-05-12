@@ -11,12 +11,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Register custom middleware aliases
         $middleware->alias([
             'auth.custom' => \App\Http\Middleware\CustomAuth::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'librarian' => \App\Http\Middleware\LibrarianMiddleware::class,
+            'member' => \App\Http\Middleware\MemberMiddleware::class,
+            'role.redirect' => \App\Http\Middleware\RoleBasedRedirect::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, $request) {
+            $status = $e->getStatusCode();
+
+            if (in_array($status, [401, 403, 404], true)) {
+                return response()->view("errors.{$status}", ['exception' => $e], $status);
+            }
+
+            return null;
+        });
     })->create();

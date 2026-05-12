@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PinjamRequest;
-use App\Models\Pinjam;
 use App\Models\Anggota;
 use App\Models\Book;
+use App\Models\Pinjam;
 use App\Services\BorrowingService;
 use App\Services\FineService;
 use Illuminate\Http\Request;
@@ -41,14 +41,15 @@ class PinjamController extends Controller
         }
 
         $pinjam = $query->latest()->paginate(10)->withQueryString();
+
         return view('pinjam.index', compact('pinjam'));
     }
 
     public function create()
     {
-        $anggota = Anggota::all();
-        $bookIdsBorrowed = Pinjam::where('status', 'dipinjam')->pluck('book_id')->toArray();
-        $books = Book::whereNotIn('id', $bookIdsBorrowed)->get();
+        $anggota = Anggota::with(['user.memberProfile', 'libraryCard'])->orderBy('nama')->get();
+        $books = Book::orderBy('judul')->get()->filter(fn (Book $book) => $book->isAvailable());
+
         return view('pinjam.create', compact('anggota', 'books'));
     }
 
@@ -56,10 +57,10 @@ class PinjamController extends Controller
     {
         try {
             $this->borrowingService->borrow(
-                $request->anggota_id,
-                $request->book_id,
-                $request->tanggal_pinjam,
-                $request->tanggal_kembali
+                $request->integer('anggota_id'),
+                $request->integer('book_id'),
+                $request->input('tanggal_pinjam'),
+                $request->input('tanggal_kembali')
             );
 
             return redirect()->route('pinjam.index')->with('success', 'Buku berhasil dipinjam!');
@@ -72,14 +73,16 @@ class PinjamController extends Controller
     {
         $pinjam = Pinjam::with(['anggota', 'book', 'pengembalian'])->findOrFail($id);
         $fineAmount = $pinjam->calculateFine();
+
         return view('pinjam.show', compact('pinjam', 'fineAmount'));
     }
 
     public function edit($id)
     {
         $pinjam = Pinjam::findOrFail($id);
-        $anggota = Anggota::all();
-        $books = Book::all();
+        $anggota = Anggota::orderBy('nama')->get();
+        $books = Book::orderBy('judul')->get();
+
         return view('pinjam.edit', compact('pinjam', 'anggota', 'books'));
     }
 
@@ -88,31 +91,29 @@ class PinjamController extends Controller
         $pinjam = Pinjam::findOrFail($id);
         $validated = $request->validated();
 
-        // Check book availability if changing book
-        if ($validated['book_id'] !== $pinjam->book_id) {
+        if ((int) $validated['book_id'] !== (int) $pinjam->book_id) {
             $book = Book::find($validated['book_id']);
-            if ($book && !$book->isAvailable()) {
+            if ($book && ! $book->isAvailable()) {
                 return redirect()->back()->withInput()->with('error', 'Buku ini sedang dipinjam!');
             }
         }
 
         $pinjam->update($validated);
+
         return redirect()->route('pinjam.index')->with('success', 'Data peminjaman berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         $this->borrowingService->cancel($id);
+
         return redirect()->route('pinjam.index')->with('success', 'Data peminjaman berhasil dihapus!');
     }
 
-    /**
-     * Show overdue borrowings.
-     */
     public function overdue()
     {
         $overdue = $this->borrowingService->getOverdueBorrowings();
+
         return view('pinjam.overdue', compact('overdue'));
     }
 }
-

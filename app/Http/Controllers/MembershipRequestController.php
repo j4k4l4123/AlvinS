@@ -4,21 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Anggota;
 use App\Models\MembershipRequest;
+use App\Models\Pengembalian;
 use App\Models\Pinjam;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MembershipRequestController extends Controller
 {
     public function index()
     {
-        $requests = MembershipRequest::with(['user', 'anggota'])->latest()->paginate(10);
+        $requests = MembershipRequest::with(['user', 'anggota', 'processedBy'])->latest()->paginate(10);
 
         return view('membership-requests.index', compact('requests'));
     }
 
     public function show($id)
     {
-        $membershipRequest = MembershipRequest::with(['user', 'anggota'])->findOrFail($id);
+        $membershipRequest = MembershipRequest::with(['user', 'anggota', 'processedBy'])->findOrFail($id);
 
         return view('membership-requests.show', ['membershipRequest' => $membershipRequest]);
     }
@@ -36,7 +38,7 @@ class MembershipRequestController extends Controller
             return back()->withErrors(['profile' => 'Profil anggota tidak ditemukan.']);
         }
 
-        $anggota = Anggota::where('id_anggota', $memberProfile->id_anggota)->first();
+        $anggota = $user?->anggota ?? Anggota::where('id_anggota', $memberProfile->id_anggota)->first();
 
         if (! $anggota) {
             return back()->withErrors(['profile' => 'Data anggota tidak ditemukan.']);
@@ -50,6 +52,23 @@ class MembershipRequestController extends Controller
             return back()->withErrors(['active' => 'Tidak dapat membatalkan keanggotaan karena masih ada buku yang dipinjam.']);
         }
 
+        $hasUnpaidFines = Pengembalian::where('anggota_id', $anggota->id)
+            ->where('denda', '>', 0)
+            ->exists();
+
+        if ($hasUnpaidFines) {
+            return back()->withErrors(['fine' => 'Tidak dapat membatalkan keanggotaan karena masih ada denda yang belum diselesaikan.']);
+        }
+
+        $existingPending = MembershipRequest::where('user_id', $user->id)
+            ->where('type', 'cancellation')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($existingPending) {
+            return back()->withErrors(['request' => 'Permintaan pembatalan masih menunggu persetujuan pustakawan.']);
+        }
+
         MembershipRequest::create([
             'user_id' => $user->id,
             'anggota_id' => $anggota->id,
@@ -57,6 +76,8 @@ class MembershipRequestController extends Controller
             'status' => 'pending',
             'reason' => $validated['reason'],
         ]);
+
+        $memberProfile->update(['membership_status' => 'pending_cancellation']);
 
         return redirect()->route('member.dashboard')->with('success', 'Permintaan pembatalan keanggotaan telah diajukan.');
     }
@@ -68,22 +89,31 @@ class MembershipRequestController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $membershipRequest = MembershipRequest::with('user')->findOrFail($id);
-        $membershipRequest->status = $validated['status'];
-        $membershipRequest->processed_at = now();
-        $membershipRequest->processed_by = auth()->id();
-        $membershipRequest->notes = $validated['notes'] ?? null;
-        $membershipRequest->save();
+        $membershipRequest = MembershipRequest::with(['user.memberProfile', 'anggota.libraryCard'])->findOrFail($id);
 
-        if ($validated['status'] === 'approved') {
+        DB::transaction(function () use ($validated, $membershipRequest) {
+            $membershipRequest->status = $validated['status'];
+            $membershipRequest->processed_at = now();
+            $membershipRequest->processed_by = auth()->id();
+            $membershipRequest->notes = $validated['notes'] ?? null;
+            $membershipRequest->save();
+
             $memberProfile = $membershipRequest->user?->memberProfile;
+            $anggota = $membershipRequest->anggota;
 
-            if ($memberProfile) {
-                $memberProfile->update(['membership_status' => 'cancelled']);
+            if (! $memberProfile || ! $anggota) {
+                return;
             }
-        }
+
+            if ($validated['status'] === 'approved') {
+                $memberProfile->update(['membership_status' => 'cancelled']);
+                $anggota->libraryCard()?->update(['status' => 'cancelled']);
+                $membershipRequest->user?->delete();
+            } else {
+                $memberProfile->update(['membership_status' => 'active']);
+            }
+        });
 
         return redirect()->route('membership-requests.index')->with('success', 'Permintaan keanggotaan telah diproses!');
     }
 }
-

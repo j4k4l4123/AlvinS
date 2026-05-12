@@ -15,6 +15,7 @@ class Book extends Model
         'thn_terbit',
         'kategori',
         'keterangan',
+        'stock',
     ];
 
     public function pinjam(): HasMany
@@ -27,9 +28,19 @@ class Book extends Model
         return $this->hasMany(Pengembalian::class);
     }
 
+    public function activeBorrowingsCount(): int
+    {
+        return $this->pinjam()->where('status', 'dipinjam')->count();
+    }
+
+    public function availableStock(): int
+    {
+        return max(0, (int) $this->stock - $this->activeBorrowingsCount());
+    }
+
     public function isAvailable(): bool
     {
-        return !$this->pinjam()->where('status', 'dipinjam')->exists();
+        return $this->availableStock() > 0;
     }
 
     public function scopeSearch($query, string $keyword)
@@ -37,7 +48,8 @@ class Book extends Model
         return $query->where(function ($q) use ($keyword) {
             $q->whereRaw('LOWER(judul) LIKE ?', ['%' . strtolower($keyword) . '%'])
                 ->orWhereRaw('LOWER(pengarang) LIKE ?', ['%' . strtolower($keyword) . '%'])
-                ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . strtolower($keyword) . '%'])
+                ->orWhereRaw('CAST(thn_terbit AS CHAR) LIKE ?', ['%' . strtolower($keyword) . '%']);
         });
     }
 
@@ -46,6 +58,7 @@ class Book extends Model
         if ($category) {
             return $query->where('kategori', $category);
         }
+
         return $query;
     }
 }

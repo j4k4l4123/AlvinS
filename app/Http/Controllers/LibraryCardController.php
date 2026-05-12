@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Anggota;
 use App\Models\LibraryCard;
-use App\Models\MemberProfile;
 use App\Models\User;
 use App\Services\LibraryCardService;
 use Carbon\Carbon;
@@ -29,11 +28,11 @@ class LibraryCardController extends Controller
     public function store(Request $request, LibraryCardService $libraryCardService)
     {
         $validated = $request->validate([
-            'anggota_id'  => ['required', 'exists:anggota,id'],
+            'anggota_id' => ['required', 'exists:anggota,id'],
             'expiry_date' => ['required', 'date', 'after:today'],
         ]);
 
-        $anggota = Anggota::findOrFail($validated['anggota_id']);
+        $anggota = Anggota::with('user')->findOrFail($validated['anggota_id']);
         $user = $anggota->user;
 
         if (! $user && $anggota->id_anggota) {
@@ -48,13 +47,15 @@ class LibraryCardController extends Controller
             ])->withInput();
         }
 
-        LibraryCard::updateOrCreate(
+        $existingCard = $anggota->libraryCard;
+
+        $anggota->libraryCard()->updateOrCreate(
             ['anggota_id' => $anggota->id],
             [
                 'user_id' => $user->id,
-                'card_number' => $libraryCardService->generateSequentialCardNumber(),
+                'card_number' => $existingCard?->card_number ?? $libraryCardService->generateSequentialCardNumber(),
                 'status' => 'active',
-                'issued_date' => Carbon::today(),
+                'issued_date' => $existingCard?->issued_date ?? Carbon::today(),
                 'expiry_date' => $validated['expiry_date'],
             ]
         );
