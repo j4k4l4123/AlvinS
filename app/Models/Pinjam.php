@@ -42,6 +42,11 @@ class Pinjam extends Model
         return $this->hasOne(Pengembalian::class);
     }
 
+    public function fine(): HasOne
+    {
+        return $this->hasOne(Fine::class, 'pinjam_id');
+    }
+
     public function isOverdue(): bool
     {
         return $this->status === 'dipinjam' && Carbon::today()->gt($this->tanggal_kembali);
@@ -49,17 +54,19 @@ class Pinjam extends Model
 
     public function daysOverdue(): int
     {
-        if (!$this->isOverdue()) {
+        if (! $this->isOverdue()) {
             return 0;
         }
+
         return Carbon::today()->diffInDays($this->tanggal_kembali);
     }
 
     public function calculateFine(): int
     {
-        if (!$this->isOverdue()) {
+        if (! $this->isOverdue()) {
             return 0;
         }
+
         return $this->daysOverdue() * 5000;
     }
 
@@ -74,4 +81,3 @@ class Pinjam extends Model
         return $query->where('status', 'dipinjam');
     }
 }
-

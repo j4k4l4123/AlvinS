@@ -3,20 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
 {
     protected $fillable = [
         'id_buku',
+        'author_id',
         'judul',
         'pengarang',
         'penerbit',
         'thn_terbit',
+        'category_id',
         'kategori',
         'keterangan',
         'stock',
     ];
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function pinjam(): HasMany
     {
@@ -56,7 +69,12 @@ class Book extends Model
     public function scopeFilterByCategory($query, ?string $category)
     {
         if ($category) {
-            return $query->where('kategori', $category);
+            return $query->where(function ($q) use ($category) {
+                $q->where('kategori', $category)
+                    ->orWhereHas('category', function ($categoryQuery) use ($category) {
+                        $categoryQuery->where('name', $category);
+                    });
+            });
         }
 
         return $query;

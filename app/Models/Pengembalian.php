@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pengembalian extends Model
 {
@@ -44,6 +45,11 @@ class Pengembalian extends Model
         return $this->belongsTo(Book::class);
     }
 
+    public function fine(): HasOne
+    {
+        return $this->hasOne(Fine::class, 'pengembalian_id');
+    }
+
     public function scopeForAnggota($query, int $anggotaId)
     {
         return $query->where('anggota_id', $anggotaId);
@@ -54,4 +60,3 @@ class Pengembalian extends Model
         return $query->where('denda', '>', 0);
     }
 }
-
