@@ -2,79 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PengembalianRequest;
 use App\Models\Pengembalian;
-use App\Models\Pinjam;
+use App\Services\FineService;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class PengembalianController extends Controller
 {
+    protected FineService $fineService;
+
+    public function __construct(FineService $fineService)
+    {
+        $this->fineService = $fineService;
+    }
+
     public function index(Request $request)
     {
         $query = Pengembalian::with(['anggota', 'book', 'pinjam']);
 
         if ($request->filled('search')) {
             $search = strtolower($request->search);
-            $query->where(function($q) use ($search) {
-                $q->whereHas('book', function($sub) use ($search) {
-                    $sub->whereRaw('LOWER(judul) LIKE ?', ["%{$search}%"]);
-                })->orWhereHas('anggota', function($sub) use ($search) {
-                    $sub->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"]);
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('book', function ($qb) use ($search) {
+                    $qb->whereRaw('LOWER(judul) LIKE ?', ['%' . $search . '%']);
+                })->orWhereHas('anggota', function ($qa) use ($search) {
+                    $qa->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%']);
                 });
             });
         }
 
-        $pengembalian = $query->get();
-        $pinjamAktif = Pinjam::with(['anggota', 'book'])->where('status', 'dipinjam')->get();
+        $pengembalian = $query->latest()->paginate(10)->withQueryString();
+        $pinjamAktif = \App\Models\Pinjam::with(['anggota', 'book'])->where('status', 'dipinjam')->get();
+
         return view('pengembalian.index', compact('pengembalian', 'pinjamAktif'));
     }
 
     public function create()
     {
-        $pinjamList = Pinjam::with(['anggota', 'book'])->where('status', 'dipinjam')->get();
+        $pinjamList = \App\Models\Pinjam::with(['anggota', 'book'])->where('status', 'dipinjam')->get();
         return view('pengembalian.create', compact('pinjamList'));
     }
 
-    public function store(Request $request)
+    public function store(PengembalianRequest $request)
     {
-        $validated = $request->validate([
-            'pinjam_id' => 'required|exists:pinjam,id',
-            'tanggal_dikembalikan' => 'required|date',
-        ], [
-            'required' => 'data tidak lengkap',
-        ]);
+        try {
+            $result = $this->fineService->processReturn(
+                $request->pinjam_id,
+                $request->tanggal_dikembalikan
+            );
 
-        $pinjam = Pinjam::findOrFail($validated['pinjam_id']);
+            $message = 'Data berhasil disimpan.';
+            if (($result['denda'] ?? 0) > 0) {
+                $message .= ' Denda: Rp ' . number_format(($result['denda'] ?? 0), 0, ',', '.');
+            }
 
-        // Calculate denda if late
-        $tanggalKembali = Carbon::parse($pinjam->tanggal_kembali);
-        $tanggalDikembalikan = Carbon::parse($validated['tanggal_dikembalikan']);
-        $denda = 0;
-
-        if ($tanggalDikembalikan->gt($tanggalKembali)) {
-            $daysLate = $tanggalDikembalikan->diffInDays($tanggalKembali);
-            $denda = $daysLate * 5000; // Rp 5000 per day late
+            return redirect()->route('pengembalian.index')->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
-
-        // Create pengembalian record
-        Pengembalian::create([
-            'pinjam_id' => $pinjam->id,
-            'anggota_id' => $pinjam->anggota_id,
-            'book_id' => $pinjam->book_id,
-            'tanggal_pinjam' => $pinjam->tanggal_pinjam,
-            'tanggal_kembali' => $pinjam->tanggal_kembali,
-            'tanggal_dikembalikan' => $validated['tanggal_dikembalikan'],
-            'denda' => $denda,
-        ]);
-
-        // Update pinjam status
-        $pinjam->update(['status' => 'dikembalikan']);
-
-        $message = $denda > 0 
-            ? 'data berhasil disimpan. Denda: Rp ' . number_format($denda, 0, ',', '.') 
-            : 'data berhasil disimpan';
-
-        return redirect()->route('pengembalian.index')->with('success', $message);
     }
 
     public function show($id)
@@ -86,13 +72,24 @@ class PengembalianController extends Controller
     public function destroy($id)
     {
         $pengembalian = Pengembalian::findOrFail($id);
-        
-        // Revert pinjam status back to dipinjam
-        $pinjam = Pinjam::findOrFail($pengembalian->pinjam_id);
+        $pinjam = \App\Models\Pinjam::findOrFail($pengembalian->pinjam_id);
+
         $pinjam->update(['status' => 'dipinjam']);
-        
         $pengembalian->delete();
-        
-        return redirect()->route('pengembalian.index')->with('success', 'data berhasil disimpan');
+
+        return redirect()->route('pengembalian.index')->with('success', 'Data berhasil dihapus dan status dipinjam dikembalikan.');
+    }
+
+    /**
+     * Show fines summary for a specific member.
+     */
+    public function fines(Request $request, $anggotaId)
+    {
+        $anggota = \App\Models\Anggota::findOrFail($anggotaId);
+        $totalFines = $this->fineService->getTotalFines($anggotaId);
+        $history = Pengembalian::with('book')->where('anggota_id', $anggotaId)->latest()->get();
+
+        return view('pengembalian.fines', compact('anggota', 'totalFines', 'history'));
     }
 }
+

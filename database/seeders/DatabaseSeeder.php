@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,11 +16,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Ensure roles exist
+        $this->call(RolesSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Seed a minimal user
+        $user = User::updateOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+            ]
+        );
+
+        // Attach librarian role so you can login and be redirected correctly
+        $librarianRole = Role::firstOrCreate(['name' => 'librarian'], ['name' => 'librarian']);
+        $user->roles()->syncWithoutDetaching([$librarianRole->id]);
+
+        // Optionally also attach member role (harmless)
+        $memberRole = Role::firstOrCreate(['name' => 'member'], ['name' => 'member']);
+        $user->roles()->syncWithoutDetaching([$memberRole->id]);
     }
 }
+

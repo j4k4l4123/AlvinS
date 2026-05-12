@@ -3,33 +3,52 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\LibraryCardController;
+use App\Http\Controllers\MembershipRequestController;
+use App\Http\Controllers\AnggotaController;
+use App\Http\Controllers\PinjamController;
+use App\Http\Controllers\PengembalianController;
+use App\Http\Controllers\Auth\LoginPostController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Middleware\LibrarianMiddleware;
+use App\Http\Middleware\MemberMiddleware;
+use App\Http\Middleware\RoleBasedRedirect;
 
-// Guest routes (only for NOT logged in users)
 Route::middleware(['guest'])->group(function () {
     Route::get('/', [PageController::class, 'login']);
     Route::get('/login', [PageController::class, 'login'])->name('login');
-    Route::post('/login', [PageController::class, 'handleLogin']);
+    Route::post('/login', LoginPostController::class)->name('login.post');
+
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.post');
+
+    Route::get('/password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+    Route::get('/password/reset', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-// Protected routes (only for logged in users)
-Route::middleware(['auth.custom'])->group(function () {
-    Route::get('/dashboard', [PageController::class, 'dashboard'])->name('dashboard');
+Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [PageController::class, 'logout'])->name('logout');
-    
-    // CRUD Routes for Pengguna
+    Route::get('/dashboard', [PageController::class, 'dashboard'])
+        ->name('dashboard')
+        ->middleware(RoleBasedRedirect::class);
+});
+
+Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
+    Route::get('/dashboard', [PageController::class, 'dashboard'])->name('librarian.dashboard');
+
     Route::get('/database', [PageController::class, 'database'])->name('pengguna.index');
     Route::get('/pengguna/create', [PageController::class, 'create'])->name('pengguna.create');
     Route::post('/pengguna', [PageController::class, 'store'])->name('pengguna.store');
     Route::get('/pengguna/{id}/edit', [PageController::class, 'edit'])->name('pengguna.edit');
     Route::put('/pengguna/{id}', [PageController::class, 'update'])->name('pengguna.update');
     Route::delete('/pengguna/{id}', [PageController::class, 'destroy'])->name('pengguna.destroy');
-});
 
-// Test page (public for everyone)
-Route::get('/test', [PageController::class, 'test']);
-
-// Book System Routes
-Route::middleware(['auth.custom'])->group(function () {
     Route::get('/books', [BookController::class, 'books'])->name('books.index');
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');
@@ -37,35 +56,50 @@ Route::middleware(['auth.custom'])->group(function () {
     Route::get('/books/{id}/edit', [BookController::class, 'edit'])->name('books.edit');
     Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
     Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.destroy');
+
+    Route::get('/anggota', [AnggotaController::class, 'index'])->name('anggota.index');
+    Route::get('/anggota/create', [AnggotaController::class, 'create'])->name('anggota.create');
+    Route::post('/anggota', [AnggotaController::class, 'store'])->name('anggota.store');
+    Route::get('/anggota/{id}', [AnggotaController::class, 'show'])->name('anggota.show');
+    Route::get('/anggota/{id}/edit', [AnggotaController::class, 'edit'])->name('anggota.edit');
+    Route::put('/anggota/{id}', [AnggotaController::class, 'update'])->name('anggota.update');
+    Route::delete('/anggota/{id}', [AnggotaController::class, 'destroy'])->name('anggota.destroy');
+
+    Route::get('/pinjam', [PinjamController::class, 'index'])->name('pinjam.index');
+    Route::get('/pinjam/create', [PinjamController::class, 'create'])->name('pinjam.create');
+    Route::post('/pinjam', [PinjamController::class, 'store'])->name('pinjam.store');
+    Route::get('/pinjam/overdue', [PinjamController::class, 'overdue'])->name('pinjam.overdue');
+    Route::get('/pinjam/{id}', [PinjamController::class, 'show'])->name('pinjam.show');
+    Route::get('/pinjam/{id}/edit', [PinjamController::class, 'edit'])->name('pinjam.edit');
+    Route::put('/pinjam/{id}', [PinjamController::class, 'update'])->name('pinjam.update');
+    Route::delete('/pinjam/{id}', [PinjamController::class, 'destroy'])->name('pinjam.destroy');
+
+    Route::get('/pengembalian', [PengembalianController::class, 'index'])->name('pengembalian.index');
+    Route::get('/pengembalian/create', [PengembalianController::class, 'create'])->name('pengembalian.create');
+    Route::post('/pengembalian', [PengembalianController::class, 'store'])->name('pengembalian.store');
+    Route::get('/pengembalian/{id}', [PengembalianController::class, 'show'])->name('pengembalian.show');
+    Route::delete('/pengembalian/{id}', [PengembalianController::class, 'destroy'])->name('pengembalian.destroy');
+    Route::get('/pengembalian/fines/{anggotaId}', [PengembalianController::class, 'fines'])->name('pengembalian.fines');
+
+    Route::get('/library-cards', [LibraryCardController::class, 'index'])->name('library-cards.index');
+    Route::get('/library-cards/create', [LibraryCardController::class, 'create'])->name('library-cards.create');
+    Route::post('/library-cards', [LibraryCardController::class, 'store'])->name('library-cards.store');
+    Route::get('/library-cards/{id}', [LibraryCardController::class, 'show'])->name('library-cards.show');
+    Route::put('/library-cards/{id}/toggle', [LibraryCardController::class, 'toggleStatus'])->name('library-cards.toggle');
+
+    Route::get('/membership-requests', [MembershipRequestController::class, 'index'])->name('membership-requests.index');
+    Route::get('/membership-requests/{id}', [MembershipRequestController::class, 'show'])->name('membership-requests.show');
+    Route::put('/membership-requests/{id}', [MembershipRequestController::class, 'update'])->name('membership-requests.update');
 });
 
-// Anggota Routes
-Route::middleware(['auth.custom'])->group(function () {
-    Route::get('/anggota', [App\Http\Controllers\AnggotaController::class, 'index'])->name('anggota.index');
-    Route::get('/anggota/create', [App\Http\Controllers\AnggotaController::class, 'create'])->name('anggota.create');
-    Route::post('/anggota', [App\Http\Controllers\AnggotaController::class, 'store'])->name('anggota.store');
-    Route::get('/anggota/{id}', [App\Http\Controllers\AnggotaController::class, 'show'])->name('anggota.show');
-    Route::get('/anggota/{id}/edit', [App\Http\Controllers\AnggotaController::class, 'edit'])->name('anggota.edit');
-    Route::put('/anggota/{id}', [App\Http\Controllers\AnggotaController::class, 'update'])->name('anggota.update');
-    Route::delete('/anggota/{id}', [App\Http\Controllers\AnggotaController::class, 'destroy'])->name('anggota.destroy');
+Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(function () {
+    Route::get('/dashboard', [MemberController::class, 'dashboard'])->name('member.dashboard');
+    Route::get('/books', [BookController::class, 'books'])->name('member.books.index');
+    Route::get('/history', [MemberController::class, 'dashboard'])->name('member.history');
+    Route::get('/library-card', [LibraryCardController::class, 'show'])->name('member.library-card');
+    Route::view('/cancel-membership', 'membership.cancel')->name('member.cancel-membership');
+    Route::post('/membership-requests', [MembershipRequestController::class, 'store'])->name('membership-requests.store');
 });
 
-// Pinjam Routes
-Route::middleware(['auth.custom'])->group(function () {
-    Route::get('/pinjam', [App\Http\Controllers\PinjamController::class, 'index'])->name('pinjam.index');
-    Route::get('/pinjam/create', [App\Http\Controllers\PinjamController::class, 'create'])->name('pinjam.create');
-    Route::post('/pinjam', [App\Http\Controllers\PinjamController::class, 'store'])->name('pinjam.store');
-    Route::get('/pinjam/{id}', [App\Http\Controllers\PinjamController::class, 'show'])->name('pinjam.show');
-    Route::get('/pinjam/{id}/edit', [App\Http\Controllers\PinjamController::class, 'edit'])->name('pinjam.edit');
-    Route::put('/pinjam/{id}', [App\Http\Controllers\PinjamController::class, 'update'])->name('pinjam.update');
-    Route::delete('/pinjam/{id}', [App\Http\Controllers\PinjamController::class, 'destroy'])->name('pinjam.destroy');
-});
+Route::get('/test', [PageController::class, 'test']);
 
-// Pengembalian Routes
-Route::middleware(['auth.custom'])->group(function () {
-    Route::get('/pengembalian', [App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
-    Route::get('/pengembalian/create', [App\Http\Controllers\PengembalianController::class, 'create'])->name('pengembalian.create');
-    Route::post('/pengembalian', [App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
-    Route::get('/pengembalian/{id}', [App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
-    Route::delete('/pengembalian/{id}', [App\Http\Controllers\PengembalianController::class, 'destroy'])->name('pengembalian.destroy');
-});

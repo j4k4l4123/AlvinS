@@ -2,90 +2,66 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AnggotaRequest;
 use App\Models\Anggota;
 use Illuminate\Http\Request;
 
 class AnggotaController extends Controller
 {
-    // Show all anggota
     public function index(Request $request)
     {
-        $query = Anggota::query();
+        $anggotaQuery = Anggota::query();
 
         if ($request->filled('search')) {
-            $search = strtolower($request->search);
-            $query->where(function($q) use ($search) {
-                $q->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(id_anggota) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(alamat) LIKE ?', ["%{$search}%"]);
-            });
+            $anggotaQuery->search($request->search);
         }
 
-        $anggota = $query->get();
+        $anggota = $anggotaQuery->paginate(10)->withQueryString();
         return view('anggota.index', compact('anggota'));
     }
 
-    // Show create form
     public function create()
     {
         return view('anggota.create');
     }
 
-    // Store new anggota
-    public function store(Request $request)
+    public function store(AnggotaRequest $request)
     {
-        $validated = $request->validate([
-            'id_anggota' => 'required|string|max:255|unique:anggota',
-            'nama' => 'required|string|max:255',
-            'alamat' => 'required|string',
-            'no_tlp' => 'required|string|max:20',
-            'tanggal_daftar' => 'required|date',
-        ], [
-            'required' => 'data tidak lengkap',
-        ]);
+        $validated = $request->validated();
+
+        // Generate sequential ID if not provided
+        if (empty($validated['id_anggota'])) {
+            $maxId = Anggota::max('id');
+            $validated['id_anggota'] = 'AGT-' . str_pad(((int)$maxId) + 1, 5, '0', STR_PAD_LEFT);
+        }
 
         Anggota::create($validated);
-        return redirect()->route('anggota.index')->with('success', 'data berhasil disimpan');
+        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil ditambahkan!');
     }
 
-    // Show single anggota
     public function show($id)
     {
-        $anggota = Anggota::findOrFail($id);
+        $anggota = Anggota::with(['pinjam', 'pengembalian'])->findOrFail($id);
         return view('anggota.show', compact('anggota'));
     }
 
-    // Show edit form
     public function edit($id)
     {
         $anggota = Anggota::findOrFail($id);
         return view('anggota.edit', compact('anggota'));
     }
 
-    // Update anggota
-    public function update(Request $request, $id)
+    public function update(AnggotaRequest $request, $id)
     {
         $anggota = Anggota::findOrFail($id);
-
-        $validated = $request->validate([
-            'id_anggota' => 'required|string|max:255|unique:anggota,id_anggota,' . $id,
-            'nama' => 'required|string|max:255',
-            'alamat' => 'required|string',
-            'no_tlp' => 'required|string|max:20',
-            'tanggal_daftar' => 'required|date',
-        ], [
-            'required' => 'data tidak lengkap',
-        ]);
-
-        $anggota->update($validated);
-        return redirect()->route('anggota.index')->with('success', 'data berhasil disimpan');
+        $anggota->update($request->validated());
+        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil diperbarui!');
     }
 
-    // Delete anggota
     public function destroy($id)
     {
         $anggota = Anggota::findOrFail($id);
         $anggota->delete();
-        return redirect()->route('anggota.index')->with('success', 'data berhasil disimpan');
+        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil dihapus!');
     }
 }

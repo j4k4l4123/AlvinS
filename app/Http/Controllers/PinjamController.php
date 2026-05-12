@@ -2,24 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PinjamRequest;
 use App\Models\Pinjam;
 use App\Models\Anggota;
 use App\Models\Book;
+use App\Services\BorrowingService;
+use App\Services\FineService;
 use Illuminate\Http\Request;
 
 class PinjamController extends Controller
 {
+    protected BorrowingService $borrowingService;
+    protected FineService $fineService;
+
+    public function __construct(BorrowingService $borrowingService, FineService $fineService)
+    {
+        $this->borrowingService = $borrowingService;
+        $this->fineService = $fineService;
+    }
+
     public function index(Request $request)
     {
         $query = Pinjam::with(['anggota', 'book']);
 
         if ($request->filled('search')) {
             $search = strtolower($request->search);
-            $query->where(function($q) use ($search) {
-                $q->whereHas('book', function($sub) use ($search) {
-                    $sub->whereRaw('LOWER(judul) LIKE ?', ["%{$search}%"]);
-                })->orWhereHas('anggota', function($sub) use ($search) {
-                    $sub->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"]);
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('book', function ($qb) use ($search) {
+                    $qb->whereRaw('LOWER(judul) LIKE ?', ['%' . $search . '%']);
+                })->orWhereHas('anggota', function ($qa) use ($search) {
+                    $qa->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%']);
                 });
             });
         }
@@ -28,50 +40,39 @@ class PinjamController extends Controller
             $query->where('status', $request->status);
         }
 
-        $pinjam = $query->get();
+        $pinjam = $query->latest()->paginate(10)->withQueryString();
         return view('pinjam.index', compact('pinjam'));
     }
 
     public function create()
     {
         $anggota = Anggota::all();
-        // Only show books that are NOT currently borrowed
-        $borrowedBookIds = Pinjam::where('status', 'dipinjam')->pluck('book_id')->toArray();
-        $books = Book::whereNotIn('id', $borrowedBookIds)->get();
+        $bookIdsBorrowed = Pinjam::where('status', 'dipinjam')->pluck('book_id')->toArray();
+        $books = Book::whereNotIn('id', $bookIdsBorrowed)->get();
         return view('pinjam.create', compact('anggota', 'books'));
     }
 
-    public function store(Request $request)
+    public function store(PinjamRequest $request)
     {
-        $validated = $request->validate([
-            'anggota_id' => 'required|exists:anggota,id',
-            'book_id' => 'required|exists:books,id',
-            'tanggal_pinjam' => 'required|date',
-            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
-        ], [
-            'required' => 'data tidak lengkap',
-            'after_or_equal' => 'Tanggal kembali harus setelah tanggal pinjam',
-        ]);
+        try {
+            $this->borrowingService->borrow(
+                $request->anggota_id,
+                $request->book_id,
+                $request->tanggal_pinjam,
+                $request->tanggal_kembali
+            );
 
-        // Check if book is already borrowed
-        $alreadyBorrowed = Pinjam::where('book_id', $validated['book_id'])
-            ->where('status', 'dipinjam')
-            ->exists();
-
-        if ($alreadyBorrowed) {
-            return redirect()->back()->withInput()->with('error', 'Buku ini sedang dipinjam oleh orang lain!');
+            return redirect()->route('pinjam.index')->with('success', 'Buku berhasil dipinjam!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
-
-        $validated['status'] = 'dipinjam';
-
-        Pinjam::create($validated);
-        return redirect()->route('pinjam.index')->with('success', 'data berhasil disimpan');
     }
 
     public function show($id)
     {
-        $pinjam = Pinjam::with(['anggota', 'book'])->findOrFail($id);
-        return view('pinjam.show', compact('pinjam'));
+        $pinjam = Pinjam::with(['anggota', 'book', 'pengembalian'])->findOrFail($id);
+        $fineAmount = $pinjam->calculateFine();
+        return view('pinjam.show', compact('pinjam', 'fineAmount'));
     }
 
     public function edit($id)
@@ -82,28 +83,36 @@ class PinjamController extends Controller
         return view('pinjam.edit', compact('pinjam', 'anggota', 'books'));
     }
 
-    public function update(Request $request, $id)
+    public function update(PinjamRequest $request, $id)
     {
         $pinjam = Pinjam::findOrFail($id);
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'anggota_id' => 'required|exists:anggota,id',
-            'book_id' => 'required|exists:books,id',
-            'tanggal_pinjam' => 'required|date',
-            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
-        ], [
-            'required' => 'data tidak lengkap',
-            'after_or_equal' => 'Tanggal kembali harus setelah tanggal pinjam',
-        ]);
+        // Check book availability if changing book
+        if ($validated['book_id'] !== $pinjam->book_id) {
+            $book = Book::find($validated['book_id']);
+            if ($book && !$book->isAvailable()) {
+                return redirect()->back()->withInput()->with('error', 'Buku ini sedang dipinjam!');
+            }
+        }
 
         $pinjam->update($validated);
-        return redirect()->route('pinjam.index')->with('success', 'data berhasil disimpan');
+        return redirect()->route('pinjam.index')->with('success', 'Data peminjaman berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
-        $pinjam = Pinjam::findOrFail($id);
-        $pinjam->delete();
-        return redirect()->route('pinjam.index')->with('success', 'data berhasil disimpan');
+        $this->borrowingService->cancel($id);
+        return redirect()->route('pinjam.index')->with('success', 'Data peminjaman berhasil dihapus!');
+    }
+
+    /**
+     * Show overdue borrowings.
+     */
+    public function overdue()
+    {
+        $overdue = $this->borrowingService->getOverdueBorrowings();
+        return view('pinjam.overdue', compact('overdue'));
     }
 }
+

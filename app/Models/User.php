@@ -2,43 +2,22 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -46,4 +25,54 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+    public function memberProfile()
+    {
+        return $this->hasOne(MemberProfile::class);
+    }
+
+    public function libraryCards()
+    {
+        return $this->hasMany(LibraryCard::class);
+    }
+
+    public function hasRole(Role|string $role): bool
+    {
+        if (is_string($role)) {
+            return $this->roles()->where('name', $role)->exists();
+        }
+
+        return $this->roles()->where('id', $role->id)->exists();
+    }
+
+    public function hasAnyRole(array|string $roles): bool
+    {
+        if (is_string($roles)) {
+            return $this->hasRole($roles);
+        }
+
+        foreach ($roles as $role) {
+            if ($this->hasRole($role)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isLibrarian(): bool
+    {
+        return $this->hasRole('librarian');
+    }
+
+    public function isMember(): bool
+    {
+        return $this->hasRole('member');
+    }
 }
+
