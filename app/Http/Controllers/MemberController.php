@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Anggota;
 use App\Models\MembershipRequest;
 use App\Models\Pinjam;
+use App\Models\SystemNotification;
 use App\Services\FineService;
 
 class MemberController extends Controller
@@ -28,7 +29,7 @@ class MemberController extends Controller
             : collect();
 
         $borrowingHistory = $anggota
-            ? Pinjam::with(['book', 'pengembalian'])
+            ? Pinjam::with(['book', 'pengembalian', 'fine'])
                 ->where('anggota_id', $anggota->id)
                 ->latest()
                 ->paginate(10, ['*'], 'history_page')
@@ -43,6 +44,12 @@ class MemberController extends Controller
                 ->first()
             : null;
 
+        $notificationsCount = $user
+            ? SystemNotification::where('user_id', $user->id)
+                ->whereNull('read_at')
+                ->count()
+            : 0;
+
         $totalFines = $anggota ? $fineService->getTotalFines($anggota->id) : 0;
 
         return view('member.dashboard', compact(
@@ -52,7 +59,8 @@ class MemberController extends Controller
             'borrowingHistory',
             'libraryCard',
             'pendingCancellation',
-            'totalFines'
+            'totalFines',
+            'notificationsCount'
         ));
     }
 }

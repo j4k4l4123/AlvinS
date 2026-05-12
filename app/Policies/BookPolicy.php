@@ -2,23 +2,33 @@
 
 namespace App\Policies;
 
+use App\Models\Book;
 use App\Models\User;
 
 class BookPolicy
 {
- /**
- * Determine whether the user can view the book catalog.
- */
- public function viewAny(User \): bool
- {
- return true; // Both librarians and members can view
- }
+    public function viewAny(User $user): bool
+    {
+        return $user->hasAnyRole(['librarian', 'member']);
+    }
 
- /**
- * Determine whether the user can manage books.
- */
- public function manage(User \): bool
- {
- return \->hasRole('librarian');
- }
+    public function view(User $user, Book $book): bool
+    {
+        return $user->hasAnyRole(['librarian', 'member']);
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->isLibrarian();
+    }
+
+    public function update(User $user, Book $book): bool
+    {
+        return $user->isLibrarian();
+    }
+
+    public function delete(User $user, Book $book): bool
+    {
+        return $user->isLibrarian();
+    }
 }

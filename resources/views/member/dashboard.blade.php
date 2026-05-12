@@ -16,7 +16,10 @@
 
 @if($profile)
 <div class="content-card" style="padding: 20px; margin-bottom: 24px;">
-    <h2 style="margin-bottom: 16px;">Profil Anggota</h2>
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom: 16px;">
+        <h2>Profil Anggota</h2>
+        <a href="{{ route('member.profile.edit') }}" class="btn-action">Edit Profil</a>
+    </div>
     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
         <div><strong>ID Anggota:</strong> {{ $profile->id_anggota ?? '-' }}</div>
         <div><strong>Nama:</strong> {{ $profile->nama ?? '-' }}</div>
@@ -39,6 +42,12 @@
     </a>
     <a href="{{ route('member.library-card') }}" class="item-card">
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Kartu Perpustakaan</h3><p class="item-detail">Lihat kartu digital dan masa berlaku</p></div></div>
+    </a>
+    <a href="{{ route('member.notifications') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Notifikasi</h3><p class="item-detail">{{ $notificationsCount }} notifikasi belum dibaca</p></div></div>
+    </a>
+    <a href="{{ route('member.fines') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Denda</h3><p class="item-detail">Total belum lunas Rp {{ number_format($totalFines, 0, ',', '.') }}</p></div></div>
     </a>
     <a href="{{ route('member.cancel-membership') }}" class="item-card">
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Batalkan Keanggotaan</h3><p class="item-detail">Ajukan pembatalan ke pustakawan</p></div></div>
@@ -124,8 +133,8 @@
                             <td>{{ $history->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
                             <td>{{ $history->pengembalian?->tanggal_dikembalikan?->format('d/m/Y') ?? 'Belum kembali' }}</td>
                             <td>
-                                @if(($history->pengembalian?->denda ?? 0) > 0)
-                                    <span style="color: #dc2626; font-weight: 700;">Rp {{ number_format($history->pengembalian->denda, 0, ',', '.') }}</span>
+                                @if(($history->fine?->amount ?? 0) > 0 && $history->fine?->status === 'unpaid')
+                                    <span style="color: #dc2626; font-weight: 700;">Rp {{ number_format($history->fine->amount, 0, ',', '.') }}</span>
                                 @else
                                     <span style="color: #16a34a;">Rp 0</span>
                                 @endif

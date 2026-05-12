@@ -2,38 +2,32 @@
 
 namespace App\Policies;
 
+use App\Models\Pengembalian;
 use App\Models\User;
-use App\Models\Pinjam;
-use Illuminate\Auth\Access\Response;
 
 class ReturnPolicy
 {
- /**
- * Determine whether the user can view any pengembalian.
- */
- public function viewAny(User \): bool
- {
- return \->hasRole('librarian');
- }
+    public function viewAny(User $user): bool
+    {
+        return $user->isLibrarian();
+    }
 
- /**
- * Determine whether the user can view their own pengembalian.
- */
- public function view(User \, Pinjam \): bool
- {
- if (\->hasRole('librarian')) {
- return true;
- }
+    public function view(User $user, Pengembalian $pengembalian): bool
+    {
+        if ($user->isLibrarian()) {
+            return true;
+        }
 
- return \->memberProfile &&
- \->anggota_id == \->memberProfile->id_anggota;
- }
+        return $pengembalian->anggota?->user_id === $user->id;
+    }
 
- /**
- * Determine whether the user can create pengembalian.
- */
- public function create(User \): bool
- {
- return \->hasRole('librarian');
- }
+    public function create(User $user): bool
+    {
+        return $user->isLibrarian();
+    }
+
+    public function delete(User $user, Pengembalian $pengembalian): bool
+    {
+        return $user->isLibrarian();
+    }
 }

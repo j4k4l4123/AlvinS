@@ -2,23 +2,28 @@
 
 namespace App\Policies;
 
+use App\Models\MembershipRequest;
 use App\Models\User;
 
 class MembershipPolicy
 {
- /**
- * Determine whether the user can cancel membership.
- */
- public function cancel(User \): bool
- {
- return \->hasRole('member');
- }
+    public function create(User $user): bool
+    {
+        return $user->isMember();
+    }
 
- /**
- * Determine whether the user can manage memberships.
- */
- public function manage(User \): bool
- {
- return \->hasRole('librarian');
- }
+    public function viewAny(User $user): bool
+    {
+        return $user->isLibrarian();
+    }
+
+    public function view(User $user, MembershipRequest $membershipRequest): bool
+    {
+        return $user->isLibrarian() || $membershipRequest->user_id === $user->id;
+    }
+
+    public function update(User $user, MembershipRequest $membershipRequest): bool
+    {
+        return $user->isLibrarian() && $membershipRequest->status === 'pending';
+    }
 }
