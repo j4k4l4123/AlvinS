@@ -68,6 +68,11 @@
                             <span class="nav-icon">🔄</span> <span class="nav-text">Perpanjangan</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('reservations.index') }}" class="{{ request()->routeIs('reservations.*') ? 'active' : '' }}">
+                            <span class="nav-icon">📌</span> <span class="nav-text">Reservasi</span>
+                        </a>
+                    </li>
                 @elseif($isMember)
                     <li>
                         <a href="{{ route('member.profile.edit') }}" class="{{ request()->routeIs('member.profile.*') ? 'active' : '' }}">

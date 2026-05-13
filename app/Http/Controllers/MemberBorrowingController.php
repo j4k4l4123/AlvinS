@@ -38,7 +38,7 @@ class MemberBorrowingController extends Controller
         $activeReservations = $anggota
             ? BookReservation::with('book')
                 ->where('anggota_id', $anggota->id)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'approved'])
                 ->where('expires_at', '>', now())
                 ->latest()
                 ->get()
@@ -68,7 +68,7 @@ class MemberBorrowingController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Buku berhasil direservasi selama 1 hari.');
+        return back()->with('success', 'Reservasi berhasil diajukan dan sedang menunggu persetujuan librarian.');
     }
 
     public function renew(Request $request, Pinjam $pinjam): RedirectResponse
@@ -117,6 +117,6 @@ class MemberBorrowingController extends Controller
             return back()->with('error', 'Reservasi gagal: ' . $e->getMessage());
         }
 
-        return back()->with('success', 'Buku berhasil direservasi selama 1 hari.');
+        return back()->with('success', 'Reservasi berhasil diajukan dan sedang menunggu persetujuan librarian.');
     }
 }

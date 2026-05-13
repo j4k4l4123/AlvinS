@@ -65,7 +65,7 @@
 
                             @unless($isMemberView)
                                 @if($activeReservation)
-                                    <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 Direservasi</span>
+                                    <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 {{ $activeReservation->status === 'approved' ? 'Reservasi Disetujui' : 'Menunggu Approval Reservasi' }}</span>
                                 @endif
                             @endunless
                         </div>

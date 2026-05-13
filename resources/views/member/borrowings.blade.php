@@ -44,7 +44,7 @@
 
 <div class="content-card" style="padding: 20px; margin-bottom:24px;">
     <h2 style="margin-bottom: 16px;">Reservasi Aktif</h2>
-    <p class="text-muted" style="margin-bottom:16px;">Reservasi otomatis hangus setelah 1 hari jika belum diproses menjadi peminjaman oleh librarian.</p>
+    <p class="text-muted" style="margin-bottom:16px;">Reservasi menunggu persetujuan librarian dan otomatis hangus setelah 1 hari jika belum diproses.</p>
 
     @if($activeReservations->count() > 0)
         <div style="display:grid; gap:14px;">
@@ -55,7 +55,7 @@
                             <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $reservation->book?->judul ?? '-' }}</h3>
                             <div class="text-muted">Barcode Buku: <strong>{{ $reservation->book?->id_buku ?? '-' }}</strong></div>
                         </div>
-                        <span class="status-badge" style="background:#fef3c7; color:#92400e;">Aktif sampai {{ $reservation->expires_at?->format('d/m/Y H:i') }}</span>
+                        <span class="status-badge" style="background:#fef3c7; color:#92400e;">{{ $reservation->status === 'approved' ? 'Disetujui' : 'Menunggu Approval' }} sampai {{ $reservation->expires_at?->format('d/m/Y H:i') }}</span>
                     </div>
                 </div>
             @endforeach

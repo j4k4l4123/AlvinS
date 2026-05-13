@@ -36,6 +36,11 @@ class BookReservation extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'pending' && $this->expires_at && $this->expires_at->isFuture();
+        return in_array($this->status, ['pending', 'approved'], true) && $this->expires_at && $this->expires_at->isFuture();
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved' && $this->expires_at && $this->expires_at->isFuture();
     }
 }

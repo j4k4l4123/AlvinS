@@ -34,12 +34,16 @@ class BorrowingService
             }
 
             $activeReservation = BookReservation::where('book_id', $book->id)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'approved'])
                 ->where('expires_at', '>', now())
                 ->first();
 
+            if ($activeReservation && $activeReservation->status === 'pending') {
+                throw new \Exception('Buku ini sedang menunggu persetujuan reservasi librarian.');
+            }
+
             if ($activeReservation && (int) $activeReservation->anggota_id !== (int) $anggotaId) {
-                throw new \Exception('Buku ini lagi di reservasi. Hanya anggota yang mereservasi yang boleh dipinjamkan buku ini.');
+                throw new \Exception('Buku ini lagi di reservasi. Hanya anggota yang reservasinya disetujui yang boleh dipinjamkan buku ini.');
             }
 
             if (! $book->isAvailable()) {
@@ -137,7 +141,7 @@ class BorrowingService
             }
 
             $activeReservation = BookReservation::where('book_id', $bookId)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'approved'])
                 ->where('expires_at', '>', now())
                 ->first();
 

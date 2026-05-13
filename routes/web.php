@@ -11,6 +11,7 @@ use App\Http\Controllers\LibraryCardController;
 use App\Http\Controllers\MemberBorrowingController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\RenewalRequestController;
+use App\Http\Controllers\ReservationApprovalController;
 use App\Http\Controllers\RackController;
 use App\Http\Controllers\MemberProfileController;
 use App\Http\Controllers\MembershipRequestController;
@@ -100,6 +101,8 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/renewal-requests', [RenewalRequestController::class, 'index'])->name('renewal-requests.index');
     Route::get('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'show'])->name('renewal-requests.show');
     Route::put('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'update'])->name('renewal-requests.update');
+    Route::get('/reservations', [ReservationApprovalController::class, 'index'])->name('reservations.index');
+    Route::put('/reservations/{reservation}', [ReservationApprovalController::class, 'update'])->name('reservations.update');
 });
 
 Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(function () {
