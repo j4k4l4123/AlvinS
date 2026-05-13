@@ -16,11 +16,20 @@ class Book extends Model
         'id_buku',
         'author_id',
         'judul',
+        'barcode',
+        'isbn',
         'pengarang',
         'penerbit',
         'thn_terbit',
         'category_id',
+        'rack_id',
         'kategori',
+        'language',
+        'subject',
+        'number_of_pages',
+        'format',
+        'price',
+        'daily_late_fee',
         'keterangan',
         'stock',
         'reference_only',
@@ -34,6 +43,11 @@ class Book extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function rack(): BelongsTo
+    {
+        return $this->belongsTo(Rack::class);
     }
 
     public function pinjam(): HasMany
@@ -69,6 +83,15 @@ class Book extends Model
     public function canBeBorrowed(): bool
     {
         return ! $this->reference_only && $this->isAvailable();
+    }
+
+    public function activeReservation(): ?BookReservation
+    {
+        return $this->reservations()
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
     }
 
     public function scopeSearch($query, string $keyword)

@@ -34,6 +34,11 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('racks.index') }}" class="{{ request()->routeIs('racks.*') ? 'active' : '' }}">
+                            <span class="nav-icon">🗂️</span> <span class="nav-text">Rak</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('anggota.index') }}" data-route="anggota" class="{{ request()->routeIs('anggota.*') ? 'active' : '' }}">
                             <span class="nav-icon">👤</span> <span class="nav-text">Anggota</span>
                         </a>

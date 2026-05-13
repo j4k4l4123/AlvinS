@@ -31,10 +31,20 @@
                 <label for="id_buku"><span class="label-icon">🆔</span> ID Buku</label>
                 <input type="text" id="id_buku" name="id_buku" value="{{ old('id_buku', $book->id_buku) }}" required class="form-input">
             </div>
+            <div class="form-group">
+                <label for="barcode"><span class="label-icon">🏷️</span> Barcode</label>
+                <input type="text" id="barcode" name="barcode" value="{{ old('barcode', $book->barcode) }}" class="form-input">
+            </div>
+        </div>
 
+        <div class="form-row">
             <div class="form-group">
                 <label for="judul"><span class="label-icon">📖</span> Judul Buku</label>
                 <input type="text" id="judul" name="judul" value="{{ old('judul', $book->judul) }}" required class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="isbn"><span class="label-icon">🔢</span> ISBN</label>
+                <input type="text" id="isbn" name="isbn" value="{{ old('isbn', $book->isbn) }}" class="form-input">
             </div>
         </div>
 
@@ -43,7 +53,6 @@
                 <label for="pengarang"><span class="label-icon">✍️</span> Pengarang</label>
                 <input type="text" id="pengarang" name="pengarang" value="{{ old('pengarang', $book->pengarang) }}" required class="form-input">
             </div>
-
             <div class="form-group">
                 <label for="penerbit"><span class="label-icon">🏢</span> Penerbit</label>
                 <input type="text" id="penerbit" name="penerbit" value="{{ old('penerbit', $book->penerbit) }}" required class="form-input">
@@ -55,7 +64,6 @@
                 <label for="thn_terbit"><span class="label-icon">📅</span> Tahun Terbit</label>
                 <input type="number" id="thn_terbit" name="thn_terbit" value="{{ old('thn_terbit', $book->thn_terbit) }}" min="1900" max="{{ date('Y') + 1 }}" required class="form-input">
             </div>
-
             <div class="form-group">
                 <label for="kategori"><span class="label-icon">🏷️</span> Kategori</label>
                 <select id="kategori" name="kategori" required class="form-input">
@@ -63,6 +71,55 @@
                         <option value="{{ $kat }}" {{ old('kategori', $book->kategori) == $kat ? 'selected' : '' }}>{{ $kat }}</option>
                     @endforeach
                 </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="rack_id"><span class="label-icon">🗂️</span> Rak</label>
+                <select id="rack_id" name="rack_id" class="form-input">
+                    <option value="">Pilih Rak</option>
+                    @foreach($racks as $rack)
+                        <option value="{{ $rack->id }}" {{ old('rack_id', $book->rack_id) == $rack->id ? 'selected' : '' }}>{{ $rack->code }} - {{ $rack->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="language"><span class="label-icon">🌐</span> Language</label>
+                <input type="text" id="language" name="language" value="{{ old('language', $book->language) }}" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="subject"><span class="label-icon">🧠</span> Subjek</label>
+                <input type="text" id="subject" name="subject" value="{{ old('subject', $book->subject) }}" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="number_of_pages"><span class="label-icon">📄</span> Number of Page</label>
+                <input type="number" id="number_of_pages" name="number_of_pages" value="{{ old('number_of_pages', $book->number_of_pages) }}" min="1" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="format"><span class="label-icon">📦</span> Format</label>
+                <input type="text" id="format" name="format" value="{{ old('format', $book->format) }}" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="price"><span class="label-icon">💳</span> Harga Buku</label>
+                <input type="number" step="0.01" id="price" name="price" value="{{ old('price', $book->price ?? 0) }}" min="0" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="daily_late_fee"><span class="label-icon">⏱️</span> Harga per Lama Peminjaman / Hari</label>
+                <input type="number" step="0.01" id="daily_late_fee" name="daily_late_fee" value="{{ old('daily_late_fee', $book->daily_late_fee ?? 0) }}" min="0" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="stock"><span class="label-icon">📚</span> Jumlah Buku</label>
+                <input type="number" id="stock" name="stock" value="{{ old('stock', $book->stock ?? 1) }}" min="1" required class="form-input">
             </div>
         </div>
 
@@ -81,4 +138,3 @@
     </form>
 </div>
 @endsection
-

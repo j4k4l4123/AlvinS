@@ -4,15 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BookRequest;
 use App\Models\Book;
+use App\Models\BookReservation;
+use App\Models\Rack;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
     public function books(Request $request)
     {
+        BookReservation::where('status', 'pending')
+            ->where('expires_at', '<=', now())
+            ->update(['status' => 'expired']);
+
         $query = Book::with(['pinjam' => function ($q) {
             $q->where('status', 'dipinjam');
-        }]);
+        }, 'rack', 'reservations.anggota']);
 
         if ($request->filled('search')) {
             $query->search($request->search);
@@ -42,8 +48,9 @@ class BookController extends Controller
 
         $nextIdBuku = 'BKU' . str_pad($next, 3, '0', STR_PAD_LEFT);
         $books = Book::orderBy('judul')->get();
+        $racks = Rack::orderBy('name')->get();
 
-        return view('books.create', compact('nextIdBuku', 'books'));
+        return view('books.create', compact('nextIdBuku', 'books', 'racks'));
     }
 
     public function store(BookRequest $request)
@@ -54,14 +61,15 @@ class BookController extends Controller
 
     public function show($id)
     {
-        $book = Book::with('pinjam')->findOrFail($id);
+        $book = Book::with(['pinjam', 'rack', 'reservations.anggota'])->findOrFail($id);
         return view('books.show', compact('book'));
     }
 
     public function edit($id)
     {
         $book = Book::findOrFail($id);
-        return view('books.edit', compact('book'));
+        $racks = Rack::orderBy('name')->get();
+        return view('books.edit', compact('book', 'racks'));
     }
 
     public function update(BookRequest $request, $id)

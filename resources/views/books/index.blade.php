@@ -53,7 +53,8 @@
                             <span class="status-badge">{{ $book->kategori }}</span>
                             <span class="item-id">#{{ $book->id_buku }}</span>
                         </div>
-                        <div class="item-status-row" style="padding: 10px 22px 0;">
+                        @php($activeReservation = $book->activeReservation())
+                        <div class="item-status-row" style="padding: 10px 22px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                             @if($book->canBeBorrowed())
                                 <span class="status-badge status-available">✅ Tersedia</span>
                             @elseif($book->reference_only)
@@ -61,11 +62,21 @@
                             @else
                                 <span class="status-badge status-borrowed">⏳ Dipinjam</span>
                             @endif
+
+                            @unless($isMemberView)
+                                @if($activeReservation)
+                                    <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 Direservasi</span>
+                                @endif
+                            @endunless
                         </div>
                         <div class="item-body">
                             <h3 class="item-title">{{ $book->judul }}</h3>
                             <p class="item-detail">✍️ {{ $book->pengarang }}</p>
                             <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
+                            @unless($isMemberView)
+                                <p class="item-detail">🗂️ Rak: {{ $book->rack?->name ?? '-' }} | 📦 Stok: {{ $book->stock ?? 0 }}</p>
+                                <p class="item-detail">💳 Harga: Rp {{ number_format((float) ($book->price ?? 0), 0, ',', '.') }} | ⏱️ Denda/hari: Rp {{ number_format((float) ($book->daily_late_fee ?? 0), 0, ',', '.') }}</p>
+                            @endunless
                             @if($book->keterangan)
                                 <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
                             @endif

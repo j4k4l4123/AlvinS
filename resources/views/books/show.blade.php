@@ -33,6 +33,17 @@
 
         <div class="detail-row">
             <div class="detail-item">
+                <span class="detail-label">ISBN</span>
+                <span class="detail-value">{{ $book->isbn ?? '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Barcode</span>
+                <span class="detail-value">{{ $book->barcode ?? $book->id_buku }}</span>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-item">
                 <span class="detail-label">Tahun Terbit</span>
                 <span class="detail-value">{{ $book->thn_terbit }}</span>
             </div>
@@ -48,6 +59,40 @@
             </div>
         </div>
         <div class="detail-row">
+            <div class="detail-item">
+                <span class="detail-label">Bahasa</span>
+                <span class="detail-value">{{ $book->language ?? '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Subjek</span>
+                <span class="detail-value">{{ $book->subject ?? '-' }}</span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-item">
+                <span class="detail-label">Jumlah Halaman</span>
+                <span class="detail-value">{{ $book->number_of_pages ?? '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Format</span>
+                <span class="detail-value">{{ $book->format ?? '-' }}</span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-item">
+                <span class="detail-label">Rak</span>
+                <span class="detail-value">{{ $book->rack?->name ?? '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Harga Buku</span>
+                <span class="detail-value">Rp {{ number_format((float) ($book->price ?? 0), 0, ',', '.') }}</span>
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-item">
+                <span class="detail-label">Denda per Hari</span>
+                <span class="detail-value">Rp {{ number_format((float) ($book->daily_late_fee ?? 0), 0, ',', '.') }}</span>
+            </div>
             <div class="detail-item">
                 <span class="detail-label">Dibuat</span>
                 <span class="detail-value">{{ $book->created_at->format('d-m-Y') }}</span>

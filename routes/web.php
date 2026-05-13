@@ -11,6 +11,7 @@ use App\Http\Controllers\LibraryCardController;
 use App\Http\Controllers\MemberBorrowingController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\RenewalRequestController;
+use App\Http\Controllers\RackController;
 use App\Http\Controllers\MemberProfileController;
 use App\Http\Controllers\MembershipRequestController;
 use App\Http\Controllers\NotificationController;
@@ -55,6 +56,7 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::delete('/pengguna/{id}', [PageController::class, 'destroy'])->name('pengguna.destroy');
 
     Route::get('/books', [BookController::class, 'books'])->name('books.index');
+    Route::get('/racks', [RackController::class, 'index'])->name('racks.index');
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');
     Route::get('/books/{id}', [BookController::class, 'show'])->name('books.show');
