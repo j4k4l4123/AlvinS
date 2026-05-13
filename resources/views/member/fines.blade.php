@@ -33,7 +33,7 @@
                                     <form method="POST" action="{{ route('member.fines.pay', $fine) }}">
                                         @csrf
                                         @method('PUT')
-                                        <button type="submit" class="btn-action">Mark Paid</button>
+                                        <button type="submit" class="btn-action">Bayar / Tandai Lunas</button>
                                     </form>
                                 @else
                                     <span class="text-muted">Paid {{ $fine->paid_at?->diffForHumans() }}</span>

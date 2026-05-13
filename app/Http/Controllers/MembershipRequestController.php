@@ -54,6 +54,9 @@ class MembershipRequestController extends Controller
 
         $hasUnpaidFines = Pengembalian::where('anggota_id', $anggota->id)
             ->where('denda', '>', 0)
+            ->whereHas('fine', function ($query) {
+                $query->where('status', 'unpaid');
+            })
             ->exists();
 
         if ($hasUnpaidFines) {

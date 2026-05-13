@@ -33,7 +33,7 @@
                                     <form method="POST" action="{{ route('member.notifications.read', $notification) }}">
                                         @csrf
                                         @method('PUT')
-                                        <button type="submit" class="btn-action">Mark as Read</button>
+                                        <button type="submit" class="btn-action">Tandai Dibaca</button>
                                     </form>
                                 @else
                                     <span class="text-muted">Done</span>

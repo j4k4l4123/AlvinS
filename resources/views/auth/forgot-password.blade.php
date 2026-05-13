@@ -8,6 +8,12 @@
 <body>
 <h1>Forgot Password</h1>
 
+@if(session('status'))
+    <div style="color:green;">
+        {{ session('status') }}
+    </div>
+@endif
+
 @if($errors->any())
     <div style="color:red;">
         <ul>

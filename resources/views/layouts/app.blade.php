@@ -65,18 +65,33 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('member.books.index') }}" class="{{ request()->routeIs('member.books.index') ? 'active' : '' }}">
+                        <a href="{{ route('member.books.index') }}" class="{{ request()->routeIs('member.books.*') ? 'active' : '' }}">
                             <span class="nav-icon">📖</span> <span class="nav-text">Katalog</span>
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('member.history') }}" class="{{ request()->routeIs('member.history') ? 'active' : '' }}">
-                            <span class="nav-icon">🕘</span> <span class="nav-text">Riwayat</span>
+                        <a href="{{ route('member.borrowings.index') }}" class="{{ request()->routeIs('member.borrowings.*') || request()->routeIs('member.history') ? 'active' : '' }}">
+                            <span class="nav-icon">📚</span> <span class="nav-text">Peminjaman</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('member.notifications') }}" class="{{ request()->routeIs('member.notifications*') ? 'active' : '' }}">
+                            <span class="nav-icon">🔔</span> <span class="nav-text">Notifikasi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('member.fines') }}" class="{{ request()->routeIs('member.fines*') ? 'active' : '' }}">
+                            <span class="nav-icon">💸</span> <span class="nav-text">Denda</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('member.library-card') }}" class="{{ request()->routeIs('member.library-card') ? 'active' : '' }}">
                             <span class="nav-icon">🪪</span> <span class="nav-text">Kartu Saya</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('member.profile.edit') }}" class="{{ request()->routeIs('member.profile.*') ? 'active' : '' }}">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Profil</span>
                         </a>
                     </li>
                     <li>

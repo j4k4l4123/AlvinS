@@ -1,13 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
+@php($isMemberView = request()->routeIs('member.*'))
 <div class="page-header">
     <h1>📚 Daftar Buku</h1>
-    <a href="{{ route('books.create') }}" class="btn-add"><span class="icon">+</span> Tambah Buku</a>
+    @unless($isMemberView)
+        <a href="{{ route('books.create') }}" class="btn-add"><span class="icon">+</span> Tambah Buku</a>
+    @endunless
 </div>
 
 <div class="search-filter-box">
-    <form method="GET" action="{{ route('books.index') }}" class="search-form">
+    <form method="GET" action="{{ $isMemberView ? route('member.books.index') : route('books.index') }}" class="search-form">
         <input type="text" name="search" placeholder="🔍 Cari judul, pengarang, atau kategori..." value="{{ request('search') }}" class="search-input">
 
         <select name="kategori" class="filter-select" onchange="this.form.submit()">
@@ -19,7 +22,7 @@
 
         <button type="submit" class="btn-search">Cari</button>
         @if(request('search') || request('kategori'))
-            <a href="{{ route('books.index') }}" class="btn-reset">Reset</a>
+            <a href="{{ $isMemberView ? route('member.books.index') : route('books.index') }}" class="btn-reset">Reset</a>
         @endif
     </form>
 </div>
@@ -58,6 +61,13 @@
                         <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
                         @if($book->keterangan)
                             <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
+                        @endif
+
+                        @if($isMemberView && $book->isAvailable())
+                            <form method="POST" action="{{ route('member.books.reserve', $book) }}" style="margin-top:12px;" onclick="event.stopPropagation();">
+                                @csrf
+                                <button type="submit" class="btn-action">Pinjam / Reservasi</button>
+                            </form>
                         @endif
                     </div>
 

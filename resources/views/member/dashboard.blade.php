@@ -43,6 +43,9 @@
     <a href="{{ route('member.library-card') }}" class="item-card">
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Kartu Perpustakaan</h3><p class="item-detail">Lihat kartu digital dan masa berlaku</p></div></div>
     </a>
+    <a href="{{ route('member.borrowings.index') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Peminjaman Saya</h3><p class="item-detail">Perpanjang atau kembalikan buku</p></div></div>
+    </a>
     <a href="{{ route('member.notifications') }}" class="item-card">
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Notifikasi</h3><p class="item-detail">{{ $notificationsCount }} notifikasi belum dibaca</p></div></div>
     </a>

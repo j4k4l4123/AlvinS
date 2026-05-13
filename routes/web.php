@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FineController;
 use App\Http\Controllers\LibraryCardController;
+use App\Http\Controllers\MemberBorrowingController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MemberProfileController;
 use App\Http\Controllers\MembershipRequestController;
@@ -98,6 +99,11 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
 Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(function () {
     Route::get('/dashboard', [MemberController::class, 'dashboard'])->name('member.dashboard');
     Route::get('/books', [BookController::class, 'books'])->name('member.books.index');
+    Route::post('/books/{book}/reserve', [MemberBorrowingController::class, 'reserve'])->name('member.books.reserve');
+    Route::get('/borrowings', [MemberBorrowingController::class, 'index'])->name('member.borrowings.index');
+    Route::post('/borrowings', [MemberBorrowingController::class, 'store'])->name('member.borrowings.store');
+    Route::put('/borrowings/{pinjam}/renew', [MemberBorrowingController::class, 'renew'])->name('member.borrowings.renew');
+    Route::put('/borrowings/{pinjam}/return', [MemberBorrowingController::class, 'returnBook'])->name('member.borrowings.return');
     Route::get('/history', [MemberController::class, 'dashboard'])->name('member.history');
     Route::get('/library-card', [LibraryCardController::class, 'show'])->name('member.library-card');
     Route::get('/profile/edit', [MemberProfileController::class, 'edit'])->name('member.profile.edit');
