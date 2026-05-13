@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\BookReservation;
 use App\Models\Pinjam;
+use App\Models\RenewalRequest;
 use App\Services\BorrowingService;
 use App\Services\FineService;
 use Carbon\Carbon;
@@ -17,6 +19,7 @@ class MemberBorrowingController extends Controller
     {
         $user = $request->user();
         $anggota = $user?->anggota;
+        $libraryCard = $anggota?->libraryCard;
 
         $activeBorrowings = $anggota
             ? Pinjam::with(['book', 'fine'])
@@ -26,26 +29,46 @@ class MemberBorrowingController extends Controller
                 ->paginate(10)
             : collect();
 
-        return view('member.borrowings', compact('activeBorrowings'));
+        $pendingRenewals = $anggota
+            ? RenewalRequest::where('anggota_id', $anggota->id)
+                ->where('status', 'pending')
+                ->pluck('notes', 'pinjam_id')
+            : collect();
+
+        $activeReservations = $anggota
+            ? BookReservation::with('book')
+                ->where('anggota_id', $anggota->id)
+                ->where('status', 'pending')
+                ->where('expires_at', '>', now())
+                ->latest()
+                ->get()
+            : collect();
+
+        return view('member.borrowings', compact('activeBorrowings', 'libraryCard', 'pendingRenewals', 'activeReservations'));
     }
 
     public function store(Request $request, BorrowingService $borrowingService): RedirectResponse
     {
         $validated = $request->validate([
-            'book_id' => ['required', 'exists:books,id'],
+            'card_number' => ['required', 'string'],
+            'book_barcode' => ['required', 'string'],
         ]);
 
-        $anggota = $request->user()?->anggota;
-
-        abort_unless($anggota, 403);
-
         try {
-            $borrowingService->borrow($anggota->id, (int) $validated['book_id']);
+            $book = Book::where('id_buku', $validated['book_barcode'])->firstOrFail();
+            $anggota = $request->user()?->anggota;
+            abort_unless($anggota, 403);
+
+            if (($anggota->libraryCard?->card_number ?? null) !== $validated['card_number']) {
+                return back()->with('error', 'Nomor kartu tidak sesuai dengan akun member yang sedang login.');
+            }
+
+            $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Buku berhasil dipinjam.');
+        return back()->with('success', 'Buku berhasil direservasi selama 1 hari.');
     }
 
     public function renew(Request $request, Pinjam $pinjam): RedirectResponse
@@ -53,11 +76,24 @@ class MemberBorrowingController extends Controller
         abort_if($pinjam->anggota?->user_id !== $request->user()?->id, 403);
         abort_if($pinjam->status !== 'dipinjam', 422, 'Peminjaman ini tidak aktif.');
 
-        $pinjam->update([
-            'tanggal_kembali' => Carbon::parse($pinjam->tanggal_kembali)->addDays(BorrowingService::DEFAULT_BORROW_DAYS),
+        $exists = RenewalRequest::where('anggota_id', $pinjam->anggota_id)
+            ->where('status', 'pending')
+            ->where('pinjam_id', $pinjam->id)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', 'Permintaan perpanjangan untuk buku ini sudah menunggu persetujuan pustakawan.');
+        }
+
+        RenewalRequest::create([
+            'user_id' => $request->user()->id,
+            'anggota_id' => $pinjam->anggota_id,
+            'pinjam_id' => $pinjam->id,
+            'status' => 'pending',
+            'notes' => 'Permintaan perpanjangan untuk buku: ' . ($pinjam->book?->judul ?? '-'),
         ]);
 
-        return back()->with('success', 'Peminjaman berhasil diperpanjang.');
+        return back()->with('success', 'Permintaan perpanjangan berhasil dikirim ke librarian untuk disetujui.');
     }
 
     public function returnBook(Request $request, Pinjam $pinjam, FineService $fineService): RedirectResponse
@@ -76,11 +112,11 @@ class MemberBorrowingController extends Controller
         abort_unless($anggota, 403);
 
         try {
-            $borrowingService->borrow($anggota->id, $book->id);
+            $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
         } catch (\Throwable $e) {
-            return back()->with('error', 'Reservasi/peminjaman gagal: ' . $e->getMessage());
+            return back()->with('error', 'Reservasi gagal: ' . $e->getMessage());
         }
 
-        return back()->with('success', 'Buku berhasil direservasi/dipinjam.');
+        return back()->with('success', 'Buku berhasil direservasi selama 1 hari.');
     }
 }

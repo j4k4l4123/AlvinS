@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PinjamRequest;
 use App\Models\Anggota;
 use App\Models\Book;
+use App\Models\BookReservation;
 use App\Models\Pinjam;
 use App\Services\BorrowingService;
 use App\Services\FineService;
@@ -47,8 +48,17 @@ class PinjamController extends Controller
 
     public function create()
     {
+        BookReservation::where('status', 'pending')
+            ->where('expires_at', '<=', now())
+            ->update(['status' => 'expired']);
+
         $anggota = Anggota::with(['user.memberProfile', 'libraryCard'])->orderBy('nama')->get();
-        $books = Book::orderBy('judul')->get()->filter(fn (Book $book) => $book->isAvailable());
+        $books = Book::with(['reservations' => function ($query) {
+                $query->where('status', 'pending')->where('expires_at', '>', now());
+            }])
+            ->orderBy('judul')
+            ->get()
+            ->filter(fn (Book $book) => $book->isAvailable());
 
         return view('pinjam.create', compact('anggota', 'books'));
     }

@@ -10,9 +10,9 @@
 <div class="content-card" style="max-width:720px;">
     <div class="item-body">
         <h3 class="item-title">{{ $membershipRequest->anggota?->nama ?? $membershipRequest->user?->name ?? '-' }}</h3>
-        <p class="item-detail">Type: {{ ucfirst($membershipRequest->type) }}</p>
+        <p class="item-detail">Type: {{ $membershipRequest->type === 'renewal' ? 'Perpanjangan Peminjaman' : ucfirst($membershipRequest->type) }}</p>
         <p class="item-detail">Status: {{ ucfirst($membershipRequest->status) }}</p>
-        <p class="item-detail">Reason: {{ $membershipRequest->reason }}</p>
+        <p class="item-detail">Reason: {{ $membershipRequest->type === 'renewal' ? ($membershipRequest->notes ?? 'Permintaan perpanjangan') : $membershipRequest->reason }}</p>
         <p class="item-detail">Submitted: {{ $membershipRequest->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
     </div>
 

@@ -76,7 +76,6 @@
 
 <div class="no-print" style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
     @if($isMemberCard)
-        <button onclick="window.print()" class="btn-submit" type="button">Print Card</button>
         <a href="{{ route('member.dashboard') }}" class="btn-back">Back</a>
     @else
         <a href="{{ route('library-cards.index') }}" class="btn-back">Back</a>

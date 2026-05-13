@@ -55,7 +55,12 @@
                     </li>
                     <li>
                         <a href="{{ route('membership-requests.index') }}" class="{{ request()->routeIs('membership-requests.*') ? 'active' : '' }}">
-                            <span class="nav-icon">📝</span> <span class="nav-text">Permintaan</span>
+                            <span class="nav-icon">📝</span> <span class="nav-text">Permintaan Member</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('renewal-requests.index') }}" class="{{ request()->routeIs('renewal-requests.*') ? 'active' : '' }}">
+                            <span class="nav-icon">🔄</span> <span class="nav-text">Perpanjangan</span>
                         </a>
                     </li>
                 @elseif($isMember)

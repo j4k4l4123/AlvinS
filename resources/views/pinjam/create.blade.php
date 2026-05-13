@@ -61,8 +61,12 @@
                 <input type="hidden" name="book_id" id="book_id" value="{{ old('book_id') }}" required>
                 <div class="searchable-dropdown" id="book_dropdown">
                     @foreach($books as $b)
+                        @php($activeReservation = $b->reservations->first())
                         <div class="searchable-option" onclick="selectOption('book', '{{ $b->id }}', '#{{ $b->id_buku }} — {{ $b->judul }}')">
                             #{{ $b->id_buku }} — {{ $b->judul }}
+                            @if($activeReservation)
+                                <span style="display:block; font-size:12px; color:#b45309; margin-top:4px;">Sedang direservasi sampai {{ $activeReservation->expires_at?->format('d/m/Y H:i') }}</span>
+                            @endif
                         </div>
                     @endforeach
                 </div>

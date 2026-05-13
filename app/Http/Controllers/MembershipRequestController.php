@@ -85,6 +85,24 @@ class MembershipRequestController extends Controller
         return redirect()->route('member.dashboard')->with('success', 'Permintaan pembatalan keanggotaan telah diajukan.');
     }
 
+    public function cancelOwnPending(Request $request)
+    {
+        $user = $request->user();
+
+        $membershipRequest = MembershipRequest::where('user_id', $user?->id)
+            ->where('type', 'cancellation')
+            ->where('status', 'pending')
+            ->latest()
+            ->firstOrFail();
+
+        DB::transaction(function () use ($membershipRequest, $user) {
+            $membershipRequest->delete();
+            $user?->memberProfile?->update(['membership_status' => 'active']);
+        });
+
+        return redirect()->route('member.dashboard')->with('success', 'Permintaan pembatalan keanggotaan berhasil dibatalkan.');
+    }
+
     public function update(Request $request, $id)
     {
         $validated = $request->validate([

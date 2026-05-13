@@ -22,6 +22,7 @@ class BookRequest extends FormRequest
             'kategori' => ['required', 'string', 'max:100'],
             'keterangan' => ['nullable', 'string', 'max:1000'],
             'stock' => ['required', 'integer', 'min:1'],
+            'reference_only' => ['nullable', 'boolean'],
         ];
     }
 }

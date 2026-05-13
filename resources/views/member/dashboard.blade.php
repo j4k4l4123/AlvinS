@@ -67,44 +67,45 @@
     </div>
 
     @if($pendingCancellation)
-        <div class="alert-error" style="margin-top: 16px;">
-            Permintaan pembatalan keanggotaan sedang diproses.
+        <div class="alert-error" style="margin-top: 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <span>Permintaan pembatalan keanggotaan sedang diproses.</span>
+            <form method="POST" action="{{ route('membership-requests.cancel-own') }}">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-action btn-edit">Batalkan Cancellation</button>
+            </form>
         </div>
     @endif
 </div>
 
-<div class="content-card" style="padding: 20px; margin-bottom: 24px;">
-    <h2 style="margin-bottom: 16px;">Peminjaman Aktif</h2>
+<div class="content-card" style="padding: 24px; margin-bottom: 24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+        <div>
+            <h2 style="margin:0;">Peminjaman Aktif</h2>
+            <p class="text-muted" style="margin:6px 0 0;">Ringkasan buku yang sedang kamu pinjam sekarang.</p>
+        </div>
+        <a href="{{ route('member.borrowings.index') }}" class="btn-action btn-view">Kelola Peminjaman</a>
+    </div>
     @if(method_exists($activeBorrowings, 'count') && $activeBorrowings->count() > 0)
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Buku</th>
-                        <th>Tanggal Pinjam</th>
-                        <th>Jatuh Tempo</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($activeBorrowings as $borrowing)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $borrowing->book?->judul ?? '-' }}</td>
-                            <td>{{ $borrowing->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
-                            <td>{{ $borrowing->tanggal_kembali?->format('d/m/Y') ?? '-' }}</td>
-                            <td>
-                                @if($borrowing->isOverdue())
-                                    <span class="status-badge status-borrowed">Overdue ({{ $borrowing->daysOverdue() }} hari)</span>
-                                @else
-                                    <span class="status-badge status-available">On Time</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div style="display:grid; gap:14px;">
+            @foreach($activeBorrowings as $borrowing)
+                <div style="border:1px solid rgba(52, 211, 153, 0.18); border-radius:18px; padding:18px; background:rgba(255,255,255,0.62);">
+                    <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start;">
+                        <div>
+                            <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $borrowing->book?->judul ?? '-' }}</h3>
+                            <div class="text-muted">Dipinjam: {{ $borrowing->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</div>
+                            <div class="text-muted">Jatuh tempo: {{ $borrowing->tanggal_kembali?->format('d/m/Y') ?? '-' }}</div>
+                        </div>
+                        <div>
+                            @if($borrowing->isOverdue())
+                                <span class="status-badge status-borrowed">Overdue {{ $borrowing->daysOverdue() }} hari</span>
+                            @else
+                                <span class="status-badge status-available">On Time</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
         </div>
         @if(method_exists($activeBorrowings, 'links'))
             <div style="margin-top: 16px;">{{ $activeBorrowings->links() }}</div>
@@ -114,38 +115,36 @@
     @endif
 </div>
 
-<div class="content-card" style="padding: 20px;">
-    <h2 style="margin-bottom: 16px;">Riwayat Peminjaman</h2>
+<div class="content-card" style="padding: 24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+        <div>
+            <h2 style="margin:0;">Riwayat Peminjaman</h2>
+            <p class="text-muted" style="margin:6px 0 0;">Daftar histori peminjaman, pengembalian, dan status dendamu.</p>
+        </div>
+        <div class="status-badge">{{ method_exists($borrowingHistory, 'total') ? $borrowingHistory->total() : $borrowingHistory->count() }} riwayat</div>
+    </div>
     @if(method_exists($borrowingHistory, 'count') && $borrowingHistory->count() > 0)
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Buku</th>
-                        <th>Dipinjam</th>
-                        <th>Dikembalikan</th>
-                        <th>Denda</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($borrowingHistory as $history)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $history->book?->judul ?? '-' }}</td>
-                            <td>{{ $history->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
-                            <td>{{ $history->pengembalian?->tanggal_dikembalikan?->format('d/m/Y') ?? 'Belum kembali' }}</td>
-                            <td>
-                                @if(($history->fine?->amount ?? 0) > 0 && $history->fine?->status === 'unpaid')
-                                    <span style="color: #dc2626; font-weight: 700;">Rp {{ number_format($history->fine->amount, 0, ',', '.') }}</span>
-                                @else
-                                    <span style="color: #16a34a;">Rp 0</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div style="display:grid; gap:14px;">
+            @foreach($borrowingHistory as $history)
+                <div style="border:1px solid rgba(52, 211, 153, 0.18); border-radius:18px; padding:18px; background:rgba(255,255,255,0.62);">
+                    <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start;">
+                        <div>
+                            <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $history->book?->judul ?? '-' }}</h3>
+                            <div class="text-muted">Dipinjam: {{ $history->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</div>
+                            <div class="text-muted">Dikembalikan: {{ $history->pengembalian?->tanggal_dikembalikan?->format('d/m/Y') ?? 'Belum kembali' }}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            @if(($history->fine?->amount ?? 0) > 0 && $history->fine?->status === 'unpaid')
+                                <div style="color: #dc2626; font-weight: 700;">Rp {{ number_format($history->fine->amount, 0, ',', '.') }}</div>
+                                <div class="text-muted">Denda belum lunas</div>
+                            @else
+                                <div style="color: #16a34a; font-weight: 700;">Rp 0</div>
+                                <div class="text-muted">Tidak ada denda aktif</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
         </div>
         @if(method_exists($borrowingHistory, 'links'))
             <div style="margin-top: 16px;">{{ $borrowingHistory->links() }}</div>

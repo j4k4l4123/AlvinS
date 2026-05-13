@@ -10,6 +10,7 @@ use App\Http\Controllers\FineController;
 use App\Http\Controllers\LibraryCardController;
 use App\Http\Controllers\MemberBorrowingController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\RenewalRequestController;
 use App\Http\Controllers\MemberProfileController;
 use App\Http\Controllers\MembershipRequestController;
 use App\Http\Controllers\NotificationController;
@@ -94,6 +95,9 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/membership-requests', [MembershipRequestController::class, 'index'])->name('membership-requests.index');
     Route::get('/membership-requests/{id}', [MembershipRequestController::class, 'show'])->name('membership-requests.show');
     Route::put('/membership-requests/{id}', [MembershipRequestController::class, 'update'])->name('membership-requests.update');
+    Route::get('/renewal-requests', [RenewalRequestController::class, 'index'])->name('renewal-requests.index');
+    Route::get('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'show'])->name('renewal-requests.show');
+    Route::put('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'update'])->name('renewal-requests.update');
 });
 
 Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(function () {
@@ -114,6 +118,7 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
     Route::put('/fines/{fine}/pay', [FineController::class, 'pay'])->name('member.fines.pay');
     Route::view('/cancel-membership', 'membership.cancel')->name('member.cancel-membership');
     Route::post('/membership-requests', [MembershipRequestController::class, 'store'])->name('membership-requests.store');
+    Route::delete('/membership-requests/pending', [MembershipRequestController::class, 'cancelOwnPending'])->name('membership-requests.cancel-own');
 });
 
 Route::get('/test', [PageController::class, 'test']);

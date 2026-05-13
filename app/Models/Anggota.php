@@ -53,6 +53,16 @@ class Anggota extends Model
         return $this->hasMany(MembershipRequest::class);
     }
 
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(BookReservation::class);
+    }
+
+    public function renewalRequests(): HasMany
+    {
+        return $this->hasMany(RenewalRequest::class);
+    }
+
     public function activeBorrowings(): HasMany
     {
         return $this->pinjam()->where('status', 'dipinjam');

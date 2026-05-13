@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('anggota_id')->constrained('anggota')->onDelete('cascade');
-            $table->enum('type', ['cancellation', 'reactivation'])->default('cancellation');
+            $table->enum('type', ['cancellation', 'reactivation', 'renewal'])->default('cancellation');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('reason')->nullable();
             $table->timestamp('processed_at')->nullable();

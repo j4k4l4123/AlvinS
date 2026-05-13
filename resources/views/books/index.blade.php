@@ -42,37 +42,52 @@
 @elseif($books->count() > 0)
     <div class="items-grid">
         @foreach($books as $book)
-            <a href="{{ route('books.show', $book->id) }}" class="item-card" style="text-decoration: none; color: inherit;">
-                <div class="tilt-layer">
-                    <div class="item-header">
-                        <span class="status-badge">{{ $book->kategori }}</span>
-                        <span class="item-id">#{{ $book->id_buku }}</span>
+            <div class="item-card">
+                @if($isMemberView)
+                    <div style="text-decoration: none; color: inherit; display:block;">
+                @else
+                    <a href="{{ route('books.show', $book->id) }}" style="text-decoration: none; color: inherit; display:block;">
+                @endif
+                    <div class="tilt-layer">
+                        <div class="item-header">
+                            <span class="status-badge">{{ $book->kategori }}</span>
+                            <span class="item-id">#{{ $book->id_buku }}</span>
+                        </div>
+                        <div class="item-status-row" style="padding: 10px 22px 0;">
+                            @if($book->canBeBorrowed())
+                                <span class="status-badge status-available">✅ Tersedia</span>
+                            @elseif($book->reference_only)
+                                <span class="status-badge status-borrowed">📘 Reference Only</span>
+                            @else
+                                <span class="status-badge status-borrowed">⏳ Dipinjam</span>
+                            @endif
+                        </div>
+                        <div class="item-body">
+                            <h3 class="item-title">{{ $book->judul }}</h3>
+                            <p class="item-detail">✍️ {{ $book->pengarang }}</p>
+                            <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
+                            @if($book->keterangan)
+                                <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
+                            @endif
+                        </div>
                     </div>
-                    <div class="item-status-row" style="padding: 10px 22px 0;">
-                        @if($book->isAvailable())
-                            <span class="status-badge status-available">✅ Tersedia</span>
-                        @else
-                            <span class="status-badge status-borrowed">⏳ Dipinjam</span>
-                        @endif
+                @if($isMemberView)
                     </div>
-                    <div class="item-body">
-                        <h3 class="item-title">{{ $book->judul }}</h3>
-                        <p class="item-detail">✍️ {{ $book->pengarang }}</p>
-                        <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
-                        @if($book->keterangan)
-                            <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
-                        @endif
+                @else
+                    </a>
+                @endif
 
-                        @if($isMemberView && $book->isAvailable())
-                            <form method="POST" action="{{ route('member.books.reserve', $book) }}" style="margin-top:12px;" onclick="event.stopPropagation();">
-                                @csrf
-                                <button type="submit" class="btn-action">Pinjam / Reservasi</button>
-                            </form>
-                        @endif
+                @if($isMemberView && $book->canBeBorrowed())
+                    <div style="padding: 0 22px 22px;">
+                        <form method="POST" action="{{ route('member.books.reserve', $book) }}" style="margin-top:12px;">
+                            @csrf
+                            <button type="submit" class="btn-member-borrow">Reservasi</button>
+                        </form>
                     </div>
-
-                </div>
-            </a>
+                @elseif($isMemberView && $book->reference_only)
+                    <div style="padding: 0 22px 22px; color:#b91c1c; font-weight:600; font-size:13px;">Reference only, tidak bisa dipinjam.</div>
+                @endif
+            </div>
         @endforeach
     </div>
 

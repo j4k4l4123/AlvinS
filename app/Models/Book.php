@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
 {
+    protected $casts = [
+        'reference_only' => 'boolean',
+    ];
+
     protected $fillable = [
         'id_buku',
         'author_id',
@@ -19,6 +23,7 @@ class Book extends Model
         'kategori',
         'keterangan',
         'stock',
+        'reference_only',
     ];
 
     public function author(): BelongsTo
@@ -34,6 +39,11 @@ class Book extends Model
     public function pinjam(): HasMany
     {
         return $this->hasMany(Pinjam::class);
+    }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(BookReservation::class);
     }
 
     public function pengembalian(): HasMany
@@ -54,6 +64,11 @@ class Book extends Model
     public function isAvailable(): bool
     {
         return $this->availableStock() > 0;
+    }
+
+    public function canBeBorrowed(): bool
+    {
+        return ! $this->reference_only && $this->isAvailable();
     }
 
     public function scopeSearch($query, string $keyword)

@@ -27,9 +27,15 @@
                 @foreach($requests as $request)
                     <tr>
                         <td>{{ $request->anggota?->nama ?? $request->user?->name ?? '-' }}</td>
-                        <td>{{ ucfirst($request->type) }}</td>
+                        <td>
+                            @if($request->type === 'renewal')
+                                Perpanjangan Peminjaman
+                            @else
+                                {{ ucfirst($request->type) }}
+                            @endif
+                        </td>
                         <td>{{ ucfirst($request->status) }}</td>
-                        <td>{{ $request->reason }}</td>
+                        <td>{{ $request->type === 'renewal' ? ($request->notes ?? 'Permintaan perpanjangan') : $request->reason }}</td>
                         <td>
                             <a href="{{ route('membership-requests.show', $request->id) }}" class="btn-action">View</a>
                         </td>
