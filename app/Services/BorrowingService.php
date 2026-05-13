@@ -39,7 +39,7 @@ class BorrowingService
                 ->first();
 
             if ($activeReservation && (int) $activeReservation->anggota_id !== (int) $anggotaId) {
-                throw new \Exception('Buku ini lagi di reservasi.');
+                throw new \Exception('Buku ini lagi di reservasi. Hanya anggota yang mereservasi yang boleh dipinjamkan buku ini.');
             }
 
             if (! $book->isAvailable()) {

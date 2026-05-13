@@ -3,7 +3,7 @@
 @section('content')
 <div class="page-header">
     <h1>👥 Daftar Anggota</h1>
-    <a href="{{ route('anggota.create') }}" class="btn-add"><span class="icon">+</span> Tambah Anggota</a>
+    <a href="{{ route('register') }}" class="btn-add"><span class="icon">+</span> Register Anggota</a>
 </div>
 
 <div class="search-filter-box">
@@ -57,8 +57,8 @@
     <div class="empty-state">
         <div class="empty-icon">📭</div>
         <h3>Belum ada anggota</h3>
-        <p class="text-muted">Tambahkan anggota pertama Anda!</p>
-        <a href="{{ route('anggota.create') }}" class="btn-add"><span class="icon">+</span> Tambah Anggota</a>
+        <p class="text-muted">Daftarkan anggota pertama Anda!</p>
+        <a href="{{ route('register') }}" class="btn-add"><span class="icon">+</span> Register Anggota</a>
     </div>
 @endif
 

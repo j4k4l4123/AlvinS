@@ -63,7 +63,7 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.destroy');
 
     Route::get('/anggota', [AnggotaController::class, 'index'])->name('anggota.index');
-    Route::get('/anggota/create', [AnggotaController::class, 'create'])->name('anggota.create');
+    Route::redirect('/anggota/create', '/register')->name('anggota.create');
     Route::post('/anggota', [AnggotaController::class, 'store'])->name('anggota.store');
     Route::get('/anggota/{id}', [AnggotaController::class, 'show'])->name('anggota.show');
     Route::get('/anggota/{id}/edit', [AnggotaController::class, 'edit'])->name('anggota.edit');

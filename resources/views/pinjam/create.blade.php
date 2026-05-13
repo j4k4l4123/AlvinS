@@ -5,7 +5,7 @@
     <div class="form-header">
         <div class="form-icon">📖</div>
         <h2>Tambah Peminjaman</h2>
-        <p class="form-subtitle">Pilih anggota dan buku yang dipinjam</p>
+        <p class="form-subtitle">Pilih anggota dan buku yang dipinjam. Jika buku sedang direservasi, hanya anggota pemilik reservasi yang boleh dipilih.</p>
     </div>
 
     @if($errors->any())

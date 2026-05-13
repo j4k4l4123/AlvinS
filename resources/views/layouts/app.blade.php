@@ -65,6 +65,11 @@
                     </li>
                 @elseif($isMember)
                     <li>
+                        <a href="{{ route('member.profile.edit') }}" class="{{ request()->routeIs('member.profile.*') ? 'active' : '' }}">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Profil</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('member.dashboard') }}" class="{{ request()->routeIs('member.dashboard') ? 'active' : '' }}">
                             <span class="nav-icon">🏠</span> <span class="nav-text">Dashboard</span>
                         </a>
@@ -92,11 +97,6 @@
                     <li>
                         <a href="{{ route('member.library-card') }}" class="{{ request()->routeIs('member.library-card') ? 'active' : '' }}">
                             <span class="nav-icon">🪪</span> <span class="nav-text">Kartu Saya</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('member.profile.edit') }}" class="{{ request()->routeIs('member.profile.*') ? 'active' : '' }}">
-                            <span class="nav-icon">👤</span> <span class="nav-text">Profil</span>
                         </a>
                     </li>
                     <li>
