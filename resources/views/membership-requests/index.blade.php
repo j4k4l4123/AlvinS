@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Permintaan Keanggotaan - PerpusKu')
+@section('title', 'Permintaan - PerpusKu')
 
 @section('content')
 <div class="page-header">
     <div>
-        <h1>📝 Permintaan Keanggotaan</h1>
+        <h1>📝 Permintaan</h1>
         <p class="text-muted">Kelola pengajuan pembatalan keanggotaan dari member.</p>
     </div>
 </div>

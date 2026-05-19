@@ -62,6 +62,8 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/project-resources/create', [ProjectResourceController::class, 'create'])->name('project-resources.create');
     Route::post('/project-resources', [ProjectResourceController::class, 'store'])->name('project-resources.store');
     Route::get('/racks', [RackController::class, 'index'])->name('racks.index');
+    Route::get('/racks/create', [RackController::class, 'create'])->name('racks.create');
+    Route::post('/racks', [RackController::class, 'store'])->name('racks.store');
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');
     Route::get('/books/{id}', [BookController::class, 'show'])->name('books.show');

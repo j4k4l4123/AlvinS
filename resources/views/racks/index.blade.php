@@ -8,7 +8,14 @@
         <h1>🗂️ Rak Buku</h1>
         <p class="text-muted" style="margin-top:6px;">Lihat lokasi rak dan total koleksi buku pada setiap rak.</p>
     </div>
+    <a href="{{ route('racks.create') }}" class="btn-add"><span class="icon">+</span> Tambah Rak</a>
 </div>
+
+@if(session('success'))
+    <div class="alert-success" style="margin-bottom: 16px;">
+        <span class="alert-icon">✅</span> {{ session('success') }}
+    </div>
+@endif
 
 @if($racks->count())
     <div class="items-grid">
@@ -37,7 +44,8 @@
     <div class="empty-state">
         <div class="empty-icon">🗂️</div>
         <h3>Belum ada rak</h3>
-        <p class="text-muted">Tambahkan data rak lewat database atau seeder agar lokasi buku bisa dilacak.</p>
+        <p class="text-muted">Tambahkan rak pertama agar lokasi buku bisa dilacak.</p>
+        <a href="{{ route('racks.create') }}" class="btn-add"><span class="icon">+</span> Tambah Rak</a>
     </div>
 @endif
 @endsection

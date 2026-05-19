@@ -45,7 +45,7 @@
 
         <div style="display:flex; gap:12px; align-items:center;">
             <button type="submit" class="btn-submit">Daftar</button>
-            <a href="{{ route('login') }}" class="btn-cancel">Kembali</a>
+            <a href="{{ route('anggota.index') }}" class="btn-cancel">Kembali</a>
         </div>
     </form>
 </div>

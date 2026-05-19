@@ -13,7 +13,10 @@ class LibraryCardController extends Controller
 {
     public function index()
     {
-        $cards = LibraryCard::with('user', 'anggota')->latest()->paginate(10);
+        $cards = LibraryCard::with('user', 'anggota')
+            ->where('status', '!=', 'cancelled')
+            ->latest()
+            ->paginate(10);
 
         return view('library-cards.index', compact('cards'));
     }
