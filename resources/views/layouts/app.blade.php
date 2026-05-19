@@ -96,6 +96,9 @@
             border-radius: 22px 22px 0 0 !important;
             font-size: 15px !important;
             letter-spacing: 0.01em !important;
+            color: #064e3b !important;
+            font-weight: 800 !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%) !important;
         }
 
         .top-navbar .notification-item {
