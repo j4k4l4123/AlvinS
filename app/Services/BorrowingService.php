@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Anggota;
 use App\Models\Book;
 use App\Models\BookReservation;
-use App\Models\LibraryCard\LibraryCard;
+use App\Models\LibraryCard;
 use App\Models\Pinjam;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
