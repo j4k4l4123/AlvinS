@@ -22,8 +22,8 @@
             <div class="navbar-actions">
                 @if($isMember)
                     <div class="notification-dropdown">
-                        <button type="button" class="notification-btn" onclick="toggleNotifications(event)" title="Notifikasi">
-                            🔔
+                        <button type="button" class="notification-btn" onclick="toggleNotifications(event)" title="Notifikasi" aria-label="Notifikasi" aria-expanded="false" aria-controls="notificationMenu">
+                            <span aria-hidden="true">🔔</span>
                             @if($notificationCount > 0)
                                 <span class="notification-badge">{{ $notificationCount }}</span>
                             @endif
@@ -278,9 +278,11 @@
             }
 
             const menu = document.getElementById('notificationMenu');
-            if (!menu) return;
+            const button = document.querySelector('.notification-btn');
+            if (!menu || !button) return;
 
-            menu.classList.toggle('show');
+            const isOpen = menu.classList.toggle('show');
+            button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         }
 
         document.addEventListener('click', function(event) {
@@ -291,6 +293,10 @@
 
             if (!dropdown.contains(event.target)) {
                 menu.classList.remove('show');
+                const button = document.querySelector('.notification-btn');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
             }
         });
     </script>
