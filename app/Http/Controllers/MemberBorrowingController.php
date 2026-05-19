@@ -6,9 +6,9 @@ use App\Models\Book;
 use App\Models\BookReservation;
 use App\Models\Pinjam;
 use App\Models\RenewalRequest;
+use App\Support\NotificationHelper;
 use App\Services\BorrowingService;
 use App\Services\FineService;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -63,7 +63,15 @@ class MemberBorrowingController extends Controller
                 return back()->with('error', 'Nomor kartu tidak sesuai dengan akun member yang sedang login.');
             }
 
-            $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
+            $reservation = $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
+
+            NotificationHelper::send(
+                $request->user()->id,
+                'reservation_created',
+                'Reservasi berhasil dibuat',
+                'Reservasi buku "' . ($book->judul ?? '-') . '" berhasil diajukan dan sedang menunggu persetujuan librarian.',
+                ['reservation_id' => $reservation->id]
+            );
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -85,13 +93,21 @@ class MemberBorrowingController extends Controller
             return back()->with('error', 'Permintaan perpanjangan untuk buku ini sudah menunggu persetujuan pustakawan.');
         }
 
-        RenewalRequest::create([
+        $renewal = RenewalRequest::create([
             'user_id' => $request->user()->id,
             'anggota_id' => $pinjam->anggota_id,
             'pinjam_id' => $pinjam->id,
             'status' => 'pending',
             'notes' => 'Permintaan perpanjangan untuk buku: ' . ($pinjam->book?->judul ?? '-'),
         ]);
+
+        NotificationHelper::send(
+            $request->user()->id,
+            'renewal_request_created',
+            'Permintaan perpanjangan dikirim',
+            'Permintaan perpanjangan untuk buku "' . ($pinjam->book?->judul ?? '-') . '" berhasil dikirim ke librarian.',
+            ['renewal_request_id' => $renewal->id]
+        );
 
         return back()->with('success', 'Permintaan perpanjangan berhasil dikirim ke librarian untuk disetujui.');
     }
@@ -112,11 +128,38 @@ class MemberBorrowingController extends Controller
         abort_unless($anggota, 403);
 
         try {
-            $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
+            $reservation = $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
+
+            NotificationHelper::send(
+                $request->user()->id,
+                'reservation_created',
+                'Reservasi berhasil dibuat',
+                'Reservasi buku "' . ($book->judul ?? '-') . '" berhasil diajukan dan sedang menunggu persetujuan librarian.',
+                ['reservation_id' => $reservation->id]
+            );
         } catch (\Throwable $e) {
             return back()->with('error', 'Reservasi gagal: ' . $e->getMessage());
         }
 
         return back()->with('success', 'Reservasi berhasil diajukan dan sedang menunggu persetujuan librarian.');
+    }
+
+    public function cancelReservation(Request $request, BookReservation $reservation): RedirectResponse
+    {
+        abort_if($reservation->user_id !== $request->user()?->id, 403);
+        abort_if(! in_array($reservation->status, ['pending', 'approved'], true), 422, 'Reservasi ini tidak bisa dibatalkan.');
+
+        $title = $reservation->book?->judul ?? '-';
+        $reservation->delete();
+
+        NotificationHelper::send(
+            $request->user()->id,
+            'reservation_cancelled',
+            'Reservasi dibatalkan',
+            'Reservasi buku "' . $title . '" berhasil dibatalkan.',
+            []
+        );
+
+        return back()->with('success', 'Reservasi berhasil dibatalkan.');
     }
 }

@@ -107,14 +107,17 @@
         </div>
     </div>
 
+    @php($isMemberView = request()->routeIs('member.books.show'))
     <div class="detail-actions">
-        <a href="{{ route('books.index') }}" class="btn-back">← Kembali</a>
-        <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">✏️ Edit</a>
-        <form action="{{ route('books.destroy', $book->id) }}" method="POST" onsubmit="return confirm('Hapus buku ini?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
-        </form>
+        <a href="{{ $isMemberView ? route('member.books.index') : route('books.index') }}" class="btn-back">← Kembali</a>
+        @unless($isMemberView)
+            <a href="{{ route('books.edit', $book->id) }}" class="btn-action btn-edit">✏️ Edit</a>
+            <form action="{{ route('books.destroy', $book->id) }}" method="POST" onsubmit="return confirm('Hapus buku ini?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-action btn-delete">🗑️ Hapus</button>
+            </form>
+        @endunless
     </div>
 </div>
 @endsection

@@ -6,6 +6,7 @@ use App\Models\Anggota;
 use App\Models\MembershipRequest;
 use App\Models\Pengembalian;
 use App\Models\Pinjam;
+use App\Support\NotificationHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -132,6 +133,21 @@ class MembershipRequestController extends Controller
                 $membershipRequest->user?->delete();
             } else {
                 $memberProfile->update(['membership_status' => 'active']);
+            }
+
+            if ($membershipRequest->user_id) {
+                NotificationHelper::send(
+                    $membershipRequest->user_id,
+                    'membership_cancellation_' . $validated['status'],
+                    $validated['status'] === 'approved' ? 'Pembatalan keanggotaan disetujui' : 'Pembatalan keanggotaan ditolak',
+                    $validated['status'] === 'approved'
+                        ? 'Permintaan pembatalan keanggotaan kamu telah disetujui.'
+                        : 'Permintaan pembatalan keanggotaan kamu ditolak.' . (($validated['notes'] ?? null) ? ' Catatan: ' . $validated['notes'] : ''),
+                    [
+                        'membership_request_id' => $membershipRequest->id,
+                        'status' => $validated['status'],
+                    ]
+                );
             }
         });
 

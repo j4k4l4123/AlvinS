@@ -44,7 +44,7 @@
         @foreach($books as $book)
             <div class="item-card">
                 @if($isMemberView)
-                    <div style="text-decoration: none; color: inherit; display:block;">
+                    <a href="{{ route('member.books.show', $book->id) }}" style="text-decoration: none; color: inherit; display:block;">
                 @else
                     <a href="{{ route('books.show', $book->id) }}" style="text-decoration: none; color: inherit; display:block;">
                 @endif
@@ -82,11 +82,7 @@
                             @endif
                         </div>
                     </div>
-                @if($isMemberView)
-                    </div>
-                @else
-                    </a>
-                @endif
+                </a>
 
                 @if($isMemberView && $book->canBeBorrowed())
                     <div style="padding: 0 22px 22px;">

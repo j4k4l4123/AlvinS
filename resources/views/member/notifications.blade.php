@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header">
     <h1>Notifikasi</h1>
-    <p class="text-muted">Lihat pemberitahuan reservasi, keterlambatan, dan pembaruan akun.</p>
+    <p class="text-muted">Lihat pemberitahuan reservasi, perpanjangan, pengembalian, pembatalan, dan pembaruan akun.</p>
 </div>
 
 <div class="content-card" style="padding: 20px;">
@@ -26,7 +26,7 @@
                         <tr>
                             <td>{{ $notification->title }}</td>
                             <td>{{ $notification->message }}</td>
-                            <td>{{ $notification->read_at ? 'Read' : 'Unread' }}</td>
+                            <td>{{ $notification->read_at ? 'Dibaca' : 'Belum Dibaca' }}</td>
                             <td>{{ $notification->created_at?->diffForHumans() }}</td>
                             <td>
                                 @if(! $notification->read_at)
@@ -36,7 +36,7 @@
                                         <button type="submit" class="btn-action">Tandai Dibaca</button>
                                     </form>
                                 @else
-                                    <span class="text-muted">Done</span>
+                                    <span class="text-muted">Selesai</span>
                                 @endif
                             </td>
                         </tr>

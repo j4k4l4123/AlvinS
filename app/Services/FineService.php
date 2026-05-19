@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Fine;
 use App\Models\Pengembalian;
 use App\Models\Pinjam;
+use App\Support\NotificationHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +26,7 @@ class FineService
     public function processReturn(int $pinjamId, string $tanggalDikembalikan): Pengembalian
     {
         return DB::transaction(function () use ($pinjamId, $tanggalDikembalikan) {
-            $pinjam = Pinjam::findOrFail($pinjamId);
+            $pinjam = Pinjam::with(['book', 'anggota.user'])->findOrFail($pinjamId);
 
             $denda = $this->calculateFine((string) $pinjam->tanggal_kembali, $tanggalDikembalikan);
 
@@ -50,6 +51,25 @@ class FineService
                         'amount' => $denda,
                         'status' => 'unpaid',
                         'notes' => 'Denda otomatis karena terlambat mengembalikan buku.',
+                    ]
+                );
+            }
+
+            if ($pinjam->anggota?->user_id) {
+                $message = 'Buku "' . ($pinjam->book?->judul ?? '-') . '" berhasil dikembalikan.';
+                if ($denda > 0) {
+                    $message .= ' Kamu terkena denda Rp ' . number_format($denda, 0, ',', '.') . '.';
+                }
+
+                NotificationHelper::send(
+                    $pinjam->anggota->user_id,
+                    'book_returned',
+                    'Pengembalian buku berhasil',
+                    $message,
+                    [
+                        'pinjam_id' => $pinjam->id,
+                        'pengembalian_id' => $pengembalian->id,
+                        'denda' => $denda,
                     ]
                 );
             }

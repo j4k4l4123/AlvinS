@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RenewalRequest;
 use App\Services\BorrowingService;
+use App\Support\NotificationHelper;
 use Illuminate\Http\Request;
 
 class RenewalRequestController extends Controller
@@ -42,6 +43,21 @@ class RenewalRequestController extends Controller
             $renewalRequest->borrowing->update([
                 'tanggal_kembali' => $renewalRequest->borrowing->tanggal_kembali->copy()->addDays(BorrowingService::DEFAULT_BORROW_DAYS),
             ]);
+        }
+
+        if ($renewalRequest->user_id) {
+            NotificationHelper::send(
+                $renewalRequest->user_id,
+                'renewal_request_' . $validated['status'],
+                $validated['status'] === 'approved' ? 'Perpanjangan disetujui' : 'Perpanjangan ditolak',
+                $validated['status'] === 'approved'
+                    ? 'Permintaan perpanjangan untuk buku "' . ($renewalRequest->borrowing?->book?->judul ?? '-') . '" telah disetujui.'
+                    : 'Permintaan perpanjangan untuk buku "' . ($renewalRequest->borrowing?->book?->judul ?? '-') . '" ditolak.' . (($validated['notes'] ?? null) ? ' Catatan: ' . $validated['notes'] : ''),
+                [
+                    'renewal_request_id' => $renewalRequest->id,
+                    'status' => $validated['status'],
+                ]
+            );
         }
 
         return redirect()->route('renewal-requests.index')->with('success', 'Permintaan perpanjangan berhasil diproses.');

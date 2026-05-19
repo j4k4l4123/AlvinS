@@ -55,7 +55,14 @@
                             <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $reservation->book?->judul ?? '-' }}</h3>
                             <div class="text-muted">Barcode Buku: <strong>{{ $reservation->book?->id_buku ?? '-' }}</strong></div>
                         </div>
-                        <span class="status-badge" style="background:#fef3c7; color:#92400e;">{{ $reservation->status === 'approved' ? 'Disetujui' : 'Menunggu Approval' }} sampai {{ $reservation->expires_at?->format('d/m/Y H:i') }}</span>
+                        <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end;">
+                            <span class="status-badge" style="background:#fef3c7; color:#92400e;">{{ $reservation->status === 'approved' ? 'Disetujui' : 'Menunggu Approval' }} sampai {{ $reservation->expires_at?->format('d/m/Y H:i') }}</span>
+                            <form method="POST" action="{{ route('member.reservations.cancel', $reservation) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-cancel">Batalkan Reservasi</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             @endforeach

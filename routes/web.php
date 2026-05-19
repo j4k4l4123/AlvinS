@@ -119,9 +119,11 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
 Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(function () {
     Route::get('/dashboard', [MemberController::class, 'dashboard'])->name('member.dashboard');
     Route::get('/books', [BookController::class, 'books'])->name('member.books.index');
+    Route::get('/books/{id}', [BookController::class, 'show'])->name('member.books.show');
     Route::post('/books/{book}/reserve', [MemberBorrowingController::class, 'reserve'])->name('member.books.reserve');
     Route::get('/borrowings', [MemberBorrowingController::class, 'index'])->name('member.borrowings.index');
     Route::post('/borrowings', [MemberBorrowingController::class, 'store'])->name('member.borrowings.store');
+    Route::delete('/reservations/{reservation}', [MemberBorrowingController::class, 'cancelReservation'])->name('member.reservations.cancel');
     Route::put('/borrowings/{pinjam}/renew', [MemberBorrowingController::class, 'renew'])->name('member.borrowings.renew');
     Route::put('/borrowings/{pinjam}/return', [MemberBorrowingController::class, 'returnBook'])->name('member.borrowings.return');
     Route::get('/history', [MemberController::class, 'dashboard'])->name('member.history');
