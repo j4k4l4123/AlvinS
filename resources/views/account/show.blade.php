@@ -90,9 +90,20 @@
     @endif
 
     @if($user->isMember())
-        <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
-            <a href="{{ route('member.profile.edit') }}" class="btn-action">Edit Profil</a>
-            <a href="{{ route('member.library-card') }}" class="btn-action">Lihat Kartu</a>
+        <div style="margin-top:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.68); border:1px solid rgba(52,211,153,0.18);">
+            <div class="text-muted" style="margin-bottom:8px;">Pengaturan Akun</div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a href="{{ route('member.profile.edit') }}" class="btn-action">Edit Profil</a>
+                <a href="{{ route('member.library-card') }}" class="btn-action">Lihat Kartu</a>
+            </div>
+        </div>
+    @endif
+
+    @if($user->isMember() && ! $user->isLibrarian())
+        <div style="margin-top:22px; padding:16px; border-radius:16px; background:rgba(236,253,245,0.7); border:1px solid rgba(52,211,153,0.18);">
+            <div class="text-muted" style="margin-bottom:8px;">Pengajuan</div>
+            <h3 style="margin:0 0 10px; color:var(--pu-forest);">Mau jadi librarian?</h3>
+            <p class="text-muted" style="margin-bottom:0;">Gunakan form pengajuan di halaman ini untuk meminta akses librarian.</p>
         </div>
     @endif
 </div>

@@ -14,15 +14,4 @@ class NotificationController extends Controller
 
         return view('member.notifications', compact('notifications'));
     }
-
-    public function markAsRead(SystemNotification $notification)
-    {
-        abort_if($notification->user_id !== auth()->id(), 403);
-
-        $notification->update([
-            'read_at' => now(),
-        ]);
-
-        return back()->with('success', 'Notifikasi ditandai sudah dibaca.');
-    }
 }

@@ -105,14 +105,16 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::put('/library-cards/{id}/toggle', [LibraryCardController::class, 'toggleStatus'])->name('library-cards.toggle');
 
     Route::get('/membership-requests', [MembershipRequestController::class, 'index'])->name('membership-requests.index');
+    Route::get('/membership-requests/reservasi', [MembershipRequestController::class, 'reservations'])->name('membership-requests.reservations');
+    Route::get('/membership-requests/reservasi/{reservation}', [MembershipRequestController::class, 'reservationsShow'])->name('membership-requests.reservations.show');
+    Route::get('/membership-requests/perpanjangan', [MembershipRequestController::class, 'renewals'])->name('membership-requests.renewals');
+    Route::get('/membership-requests/perpanjangan/{renewalRequest}', [MembershipRequestController::class, 'renewalsShow'])->name('membership-requests.renewals.show');
+    Route::get('/membership-requests/pengajuan-librarian', [MembershipRequestController::class, 'librarianRegistrations'])->name('membership-requests.librarian-registrations');
+    Route::get('/membership-requests/pengajuan-librarian/{librarianRegistrationRequest}', [MembershipRequestController::class, 'librarianRegistrationsShow'])->name('membership-requests.librarian-registrations.show');
     Route::get('/membership-requests/{id}', [MembershipRequestController::class, 'show'])->name('membership-requests.show');
     Route::put('/membership-requests/{id}', [MembershipRequestController::class, 'update'])->name('membership-requests.update');
-    Route::get('/librarian-registration-requests', [LibrarianRegistrationRequestController::class, 'index'])->name('librarian-registration-requests.index');
     Route::put('/librarian-registration-requests/{librarianRegistrationRequest}', [LibrarianRegistrationRequestController::class, 'update'])->name('librarian-registration-requests.update');
-    Route::get('/renewal-requests', [RenewalRequestController::class, 'index'])->name('renewal-requests.index');
-    Route::get('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'show'])->name('renewal-requests.show');
     Route::put('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'update'])->name('renewal-requests.update');
-    Route::get('/reservations', [ReservationApprovalController::class, 'index'])->name('reservations.index');
     Route::put('/reservations/{reservation}', [ReservationApprovalController::class, 'update'])->name('reservations.update');
 });
 
@@ -130,7 +132,6 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
     Route::get('/profile/edit', [MemberProfileController::class, 'edit'])->name('member.profile.edit');
     Route::put('/profile', [MemberProfileController::class, 'update'])->name('member.profile.update');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('member.notifications');
-    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('member.notifications.read');
     Route::get('/fines', [FineController::class, 'index'])->name('member.fines');
     Route::put('/fines/{fine}/pay', [FineController::class, 'pay'])->name('member.fines.pay');
     Route::view('/cancel-membership', 'membership.cancel')->name('member.cancel-membership');

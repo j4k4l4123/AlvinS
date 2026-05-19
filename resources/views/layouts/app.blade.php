@@ -64,34 +64,14 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('membership-requests.index') }}" class="{{ request()->routeIs('membership-requests.*') ? 'active' : '' }}">
-                            <span class="nav-icon">📝</span> <span class="nav-text">Permintaan Member</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('renewal-requests.index') }}" class="{{ request()->routeIs('renewal-requests.*') ? 'active' : '' }}">
-                            <span class="nav-icon">🔄</span> <span class="nav-text">Perpanjangan</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('librarian-registration-requests.index') }}" class="{{ request()->routeIs('librarian-registration-requests.*') ? 'active' : '' }}">
-                            <span class="nav-icon">🛡️</span> <span class="nav-text">Permintaan Librarian</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('reservations.index') }}" class="{{ request()->routeIs('reservations.*') ? 'active' : '' }}">
-                            <span class="nav-icon">📌</span> <span class="nav-text">Reservasi</span>
+                        <a href="{{ route('membership-requests.index') }}" class="{{ request()->routeIs('membership-requests.*') || request()->routeIs('librarian-registration-requests.*') || request()->routeIs('renewal-requests.*') || request()->routeIs('reservations.*') ? 'active' : '' }}">
+                            <span class="nav-icon">📝</span> <span class="nav-text">Pengajuan</span>
                         </a>
                     </li>
                 @elseif($isMember)
                     <li>
                         <a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'active' : '' }}">
                             <span class="nav-icon">👤</span> <span class="nav-text">Akun Saya</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('member.profile.edit') }}" class="{{ request()->routeIs('member.profile.*') ? 'active' : '' }}">
-                            <span class="nav-icon">✏️</span> <span class="nav-text">Edit Profil</span>
                         </a>
                     </li>
                     <li>
@@ -122,11 +102,6 @@
                     <li>
                         <a href="{{ route('member.library-card') }}" class="{{ request()->routeIs('member.library-card') ? 'active' : '' }}">
                             <span class="nav-icon">🪪</span> <span class="nav-text">Kartu Saya</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('member.cancel-membership') }}" class="{{ request()->routeIs('member.cancel-membership') ? 'active' : '' }}">
-                            <span class="nav-icon">❌</span> <span class="nav-text">Batalkan</span>
                         </a>
                     </li>
                 @endif

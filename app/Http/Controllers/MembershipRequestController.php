@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Anggota;
 use App\Models\BookReservation;
+use App\Models\LibrarianRegistrationRequest;
 use App\Models\MembershipRequest;
 use App\Models\Pengembalian;
 use App\Models\Pinjam;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MembershipRequestController extends Controller
 {
@@ -21,61 +23,31 @@ class MembershipRequestController extends Controller
         $membershipRequests = MembershipRequest::with(['user', 'anggota', 'processedBy'])
             ->latest()
             ->get()
-            ->map(function ($item) {
-                return [
-                    'kind' => 'membership',
-                    'id' => $item->id,
-                    'status' => $item->status,
-                    'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
-                    'member_code' => $item->anggota?->id_anggota ?? '-',
-                    'title' => 'Pembatalan Keanggotaan',
-                    'description' => $item->reason ?? '-',
-                    'created_at' => $item->created_at,
-                    'detail_url' => route('membership-requests.show', $item->id),
-                    'processed_at' => $item->processed_at,
-                ];
-            });
+            ->map(fn ($item) => $this->mapMembershipRequest($item));
 
         $renewalRequests = RenewalRequest::with(['user', 'anggota', 'borrowing.book', 'processedBy'])
             ->latest()
             ->get()
-            ->map(function ($item) {
-                return [
-                    'kind' => 'renewal',
-                    'id' => $item->id,
-                    'status' => $item->status,
-                    'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
-                    'member_code' => $item->anggota?->id_anggota ?? '-',
-                    'title' => 'Perpanjangan Peminjaman',
-                    'description' => 'Buku: ' . ($item->borrowing?->book?->judul ?? '-'),
-                    'created_at' => $item->created_at,
-                    'detail_url' => route('renewal-requests.show', $item),
-                    'processed_at' => $item->processed_at,
-                ];
-            });
+            ->map(fn ($item) => $this->mapRenewalRequest($item));
 
         $reservationRequests = BookReservation::with(['user', 'anggota', 'book'])
             ->latest()
             ->get()
-            ->map(function ($item) {
-                return [
-                    'kind' => 'reservation',
-                    'id' => $item->id,
-                    'status' => $item->status,
-                    'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
-                    'member_code' => $item->anggota?->id_anggota ?? '-',
-                    'title' => 'Reservasi Buku',
-                    'description' => 'Buku: ' . ($item->book?->judul ?? '-'),
-                    'created_at' => $item->created_at,
-                    'detail_url' => route('reservations.index') . '#reservation-' . $item->id,
-                    'processed_at' => null,
-                ];
-            });
+            ->map(fn ($item) => $this->mapReservationRequest($item));
+
+        $librarianRequests = collect();
+        if (Schema::hasTable('librarian_registration_requests')) {
+            $librarianRequests = LibrarianRegistrationRequest::with(['user', 'processedBy'])
+                ->latest()
+                ->get()
+                ->map(fn ($item) => $this->mapLibrarianRequest($item));
+        }
 
         $merged = Collection::make()
-            ->concat($membershipRequests)
-            ->concat($renewalRequests)
             ->concat($reservationRequests)
+            ->concat($renewalRequests)
+            ->concat($membershipRequests)
+            ->concat($librarianRequests)
             ->sortByDesc('created_at')
             ->values();
 
@@ -90,6 +62,64 @@ class MembershipRequestController extends Controller
         );
 
         return view('membership-requests.index', ['requests' => $paginated]);
+    }
+
+    public function reservations()
+    {
+        BookReservation::where('status', 'pending')
+            ->where('expires_at', '<=', now())
+            ->update(['status' => 'expired']);
+
+        $reservations = BookReservation::with(['book.rack', 'anggota', 'user'])
+            ->latest()
+            ->paginate(12);
+
+        return view('membership-requests.reservations', compact('reservations'));
+    }
+
+    public function renewals()
+    {
+        $requests = RenewalRequest::with(['user', 'anggota', 'borrowing.book', 'processedBy'])
+            ->latest()
+            ->paginate(10);
+
+        return view('membership-requests.renewals', compact('requests'));
+    }
+
+    public function renewalsShow(RenewalRequest $renewalRequest)
+    {
+        $renewalRequest->load(['user', 'anggota', 'borrowing.book', 'processedBy']);
+
+        return view('membership-requests.renewal-show', compact('renewalRequest'));
+    }
+
+    public function reservationsShow(BookReservation $reservation)
+    {
+        if ($reservation->status === 'pending' && $reservation->expires_at && $reservation->expires_at->isPast()) {
+            $reservation->update(['status' => 'expired']);
+        }
+
+        $reservation->load(['book.rack', 'anggota', 'user']);
+
+        return view('membership-requests.reservation-show', compact('reservation'));
+    }
+
+    public function librarianRegistrations()
+    {
+        $requests = Schema::hasTable('librarian_registration_requests')
+            ? LibrarianRegistrationRequest::with(['user', 'processedBy'])->latest()->paginate(10)
+            : collect();
+
+        return view('membership-requests.librarian-registrations', compact('requests'));
+    }
+
+    public function librarianRegistrationsShow(LibrarianRegistrationRequest $librarianRegistrationRequest)
+    {
+        abort_unless(Schema::hasTable('librarian_registration_requests'), 404);
+
+        $librarianRegistrationRequest->load(['user', 'processedBy']);
+
+        return view('membership-requests.librarian-registration-show', compact('librarianRegistrationRequest'));
     }
 
     public function show($id)
@@ -225,5 +255,65 @@ class MembershipRequestController extends Controller
         });
 
         return redirect()->route('membership-requests.index')->with('success', 'Permintaan keanggotaan telah diproses!');
+    }
+
+    private function mapMembershipRequest(MembershipRequest $item): array
+    {
+        return [
+            'kind' => 'membership',
+            'id' => $item->id,
+            'status' => $item->status,
+            'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
+            'member_code' => $item->anggota?->id_anggota ?? '-',
+            'title' => 'Pembatalan Keanggotaan',
+            'description' => $item->reason ?? '-',
+            'created_at' => $item->created_at,
+            'detail_url' => route('membership-requests.show', $item->id),
+        ];
+    }
+
+    private function mapRenewalRequest(RenewalRequest $item): array
+    {
+        return [
+            'kind' => 'renewal',
+            'id' => $item->id,
+            'status' => $item->status,
+            'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
+            'member_code' => $item->anggota?->id_anggota ?? '-',
+            'title' => 'Perpanjangan Peminjaman',
+            'description' => 'Buku: ' . ($item->borrowing?->book?->judul ?? '-'),
+            'created_at' => $item->created_at,
+            'detail_url' => route('membership-requests.renewals.show', $item),
+        ];
+    }
+
+    private function mapReservationRequest(BookReservation $item): array
+    {
+        return [
+            'kind' => 'reservation',
+            'id' => $item->id,
+            'status' => $item->status,
+            'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
+            'member_code' => $item->anggota?->id_anggota ?? '-',
+            'title' => 'Reservasi Buku',
+            'description' => 'Buku: ' . ($item->book?->judul ?? '-'),
+            'created_at' => $item->created_at,
+            'detail_url' => route('membership-requests.reservations.show', $item),
+        ];
+    }
+
+    private function mapLibrarianRequest(LibrarianRegistrationRequest $item): array
+    {
+        return [
+            'kind' => 'librarian',
+            'id' => $item->id,
+            'status' => $item->status,
+            'member_name' => $item->user?->name ?? '-',
+            'member_code' => '-',
+            'title' => 'Pengajuan Librarian',
+            'description' => $item->reason ?: 'Tidak ada alasan tambahan.',
+            'created_at' => $item->created_at,
+            'detail_url' => route('membership-requests.librarian-registrations.show', $item),
+        ];
     }
 }

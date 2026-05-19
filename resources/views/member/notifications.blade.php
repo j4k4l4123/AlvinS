@@ -13,28 +13,12 @@
 @if($notifications->count())
     <div style="display:grid; gap:16px;">
         @foreach($notifications as $notification)
-            <div class="content-card" style="padding:20px; border:1px solid {{ $notification->read_at ? 'rgba(148,163,184,0.18)' : 'rgba(52,211,153,0.22)' }}; background:{{ $notification->read_at ? 'rgba(255,255,255,0.6)' : 'rgba(236,253,245,0.75)' }};">
+            <div class="content-card" style="padding:20px; border:1px solid rgba(52,211,153,0.18); background:rgba(255,255,255,0.72);">
                 <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start;">
                     <div style="flex:1; min-width:240px;">
-                        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
-                            <h3 style="margin:0; color:var(--pu-forest);">{{ $notification->title }}</h3>
-                            <span class="status-badge {{ $notification->read_at ? '' : 'status-available' }}">
-                                {{ $notification->read_at ? 'Dibaca' : 'Baru' }}
-                            </span>
-                        </div>
+                        <h3 style="margin:0 0 10px; color:var(--pu-forest);">{{ $notification->title }}</h3>
                         <p style="margin:0 0 10px; color:#334155; line-height:1.6;">{{ $notification->message }}</p>
                         <div class="text-muted">{{ $notification->created_at?->translatedFormat('d M Y, H:i') ?? '-' }} • {{ $notification->created_at?->diffForHumans() }}</div>
-                    </div>
-                    <div>
-                        @if(! $notification->read_at)
-                            <form method="POST" action="{{ route('member.notifications.read', $notification) }}">
-                                @csrf
-                                @method('PUT')
-                                <button type="submit" class="btn-action">Tandai Dibaca</button>
-                            </form>
-                        @else
-                            <span class="text-muted">Selesai</span>
-                        @endif
                     </div>
                 </div>
             </div>
