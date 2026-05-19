@@ -29,6 +29,11 @@
             <ul class="sidebar-nav" id="sidebarNav">
                 @if($isLibrarian)
                     <li>
+                        <a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'active' : '' }}">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Akun Saya</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('books.index') }}" data-route="books" class="{{ request()->routeIs('books.*') ? 'active' : '' }}">
                             <span class="nav-icon">📖</span> <span class="nav-text">Buku</span>
                         </a>
@@ -69,14 +74,24 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('librarian-registration-requests.index') }}" class="{{ request()->routeIs('librarian-registration-requests.*') ? 'active' : '' }}">
+                            <span class="nav-icon">🛡️</span> <span class="nav-text">Permintaan Librarian</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('reservations.index') }}" class="{{ request()->routeIs('reservations.*') ? 'active' : '' }}">
                             <span class="nav-icon">📌</span> <span class="nav-text">Reservasi</span>
                         </a>
                     </li>
                 @elseif($isMember)
                     <li>
+                        <a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'active' : '' }}">
+                            <span class="nav-icon">👤</span> <span class="nav-text">Akun Saya</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('member.profile.edit') }}" class="{{ request()->routeIs('member.profile.*') ? 'active' : '' }}">
-                            <span class="nav-icon">👤</span> <span class="nav-text">Profil</span>
+                            <span class="nav-icon">✏️</span> <span class="nav-text">Edit Profil</span>
                         </a>
                     </li>
                     <li>

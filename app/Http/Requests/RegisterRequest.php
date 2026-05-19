@@ -17,6 +17,8 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'role' => ['required', 'in:member,librarian'],
+            'reason' => ['nullable', 'string', 'max:1000'],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()],
             'password_confirmation' => ['required', 'string'],
         ];

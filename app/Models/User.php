@@ -59,6 +59,11 @@ class User extends Authenticatable
         return $this->hasMany(MembershipRequest::class);
     }
 
+    public function librarianRegistrationRequests(): HasMany
+    {
+        return $this->hasMany(LibrarianRegistrationRequest::class);
+    }
+
     public function hasRole(Role|string $role): bool
     {
         if (is_string($role)) {

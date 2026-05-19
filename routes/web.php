@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginPostController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FineController;
 use App\Http\Controllers\LibraryCardController;
+use App\Http\Controllers\LibrarianRegistrationRequestController;
 use App\Http\Controllers\MemberBorrowingController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\RenewalRequestController;
@@ -45,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [PageController::class, 'dashboard'])
         ->name('dashboard')
         ->middleware(RoleBasedRedirect::class);
+    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
 });
 
 Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
@@ -104,6 +107,8 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/membership-requests', [MembershipRequestController::class, 'index'])->name('membership-requests.index');
     Route::get('/membership-requests/{id}', [MembershipRequestController::class, 'show'])->name('membership-requests.show');
     Route::put('/membership-requests/{id}', [MembershipRequestController::class, 'update'])->name('membership-requests.update');
+    Route::get('/librarian-registration-requests', [LibrarianRegistrationRequestController::class, 'index'])->name('librarian-registration-requests.index');
+    Route::put('/librarian-registration-requests/{librarianRegistrationRequest}', [LibrarianRegistrationRequestController::class, 'update'])->name('librarian-registration-requests.update');
     Route::get('/renewal-requests', [RenewalRequestController::class, 'index'])->name('renewal-requests.index');
     Route::get('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'show'])->name('renewal-requests.show');
     Route::put('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'update'])->name('renewal-requests.update');
@@ -130,6 +135,7 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
     Route::view('/cancel-membership', 'membership.cancel')->name('member.cancel-membership');
     Route::post('/membership-requests', [MembershipRequestController::class, 'store'])->name('membership-requests.store');
     Route::delete('/membership-requests/pending', [MembershipRequestController::class, 'cancelOwnPending'])->name('membership-requests.cancel-own');
+    Route::post('/librarian-registration-requests', [LibrarianRegistrationRequestController::class, 'store'])->name('librarian-registration-requests.store');
 });
 
 Route::get('/test', [PageController::class, 'test']);

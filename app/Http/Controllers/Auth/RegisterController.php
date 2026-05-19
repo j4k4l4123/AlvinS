@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Anggota;
+use App\Models\LibrarianRegistrationRequest;
 use App\Models\MemberProfile;
 use App\Models\Role;
 use App\Models\User;
@@ -31,7 +32,7 @@ class RegisterController extends Controller
             ]);
 
             $memberRole = Role::where('name', 'member')->firstOrFail();
-            $user->roles()->sync([$memberRole->id]);
+            $user->roles()->syncWithoutDetaching([$memberRole->id]);
 
             $nextId = (Anggota::max('id') ?? 0) + 1;
             $anggotaCode = 'AGT-' . str_pad((string) $nextId, 5, '0', STR_PAD_LEFT);
@@ -63,16 +64,24 @@ class RegisterController extends Controller
                 'expiry_date' => now()->addYear()->toDateString(),
             ]);
 
+            if (($validated['role'] ?? 'member') === 'librarian') {
+                LibrarianRegistrationRequest::create([
+                    'user_id' => $user->id,
+                    'status' => 'pending',
+                    'reason' => $validated['reason'] ?? null,
+                ]);
+            }
+
             return $user;
         });
-
-        if ($request->user()?->isLibrarian()) {
-            return redirect()->route('anggota.index')->with('success', 'Registrasi anggota berhasil! Kartu perpustakaan digital sudah dibuat.');
-        }
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('member.dashboard')->with('success', 'Registrasi berhasil! Kartu perpustakaan digital kamu sudah dibuat.');
+        $message = ($validated['role'] ?? 'member') === 'librarian'
+            ? 'Registrasi berhasil! Permintaan akses librarian kamu sedang menunggu persetujuan.'
+            : 'Registrasi berhasil! Kartu perpustakaan digital kamu sudah dibuat.';
+
+        return redirect()->route('member.dashboard')->with('success', $message);
     }
 }
