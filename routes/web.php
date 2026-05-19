@@ -18,6 +18,7 @@ use App\Http\Controllers\MembershipRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PengembalianController;
+use App\Http\Controllers\ProjectResourceController;
 use App\Http\Controllers\PinjamController;
 use App\Http\Middleware\LibrarianMiddleware;
 use App\Http\Middleware\MemberMiddleware;
@@ -28,9 +29,6 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/', [PageController::class, 'login']);
     Route::get('/login', [PageController::class, 'login'])->name('login');
     Route::post('/login', LoginPostController::class)->name('login.post');
-
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.post');
 
     Route::get('/password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -47,6 +45,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.post');
+
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('librarian.dashboard');
 
     Route::get('/database', [PageController::class, 'database'])->name('pengguna.index');
@@ -57,6 +58,9 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::delete('/pengguna/{id}', [PageController::class, 'destroy'])->name('pengguna.destroy');
 
     Route::get('/books', [BookController::class, 'books'])->name('books.index');
+    Route::get('/project-resources', [ProjectResourceController::class, 'index'])->name('project-resources.index');
+    Route::get('/project-resources/create', [ProjectResourceController::class, 'create'])->name('project-resources.create');
+    Route::post('/project-resources', [ProjectResourceController::class, 'store'])->name('project-resources.store');
     Route::get('/racks', [RackController::class, 'index'])->name('racks.index');
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');

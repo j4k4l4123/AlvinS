@@ -128,7 +128,7 @@ class MembershipRequestController extends Controller
 
             if ($validated['status'] === 'approved') {
                 $memberProfile->update(['membership_status' => 'cancelled']);
-                $anggota->libraryCard()?->update(['status' => 'cancelled']);
+                $anggota->libraryCard()?->delete();
                 $membershipRequest->user?->delete();
             } else {
                 $memberProfile->update(['membership_status' => 'active']);

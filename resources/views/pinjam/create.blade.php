@@ -44,10 +44,12 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="searchable-selected" id="anggota_selected">
+                <div class="searchable-selected {{ old('anggota_id') ? 'visible' : '' }}" id="anggota_selected">
                     @if(old('anggota_id'))
-                        @php $oldA = $anggota->firstWhere('id', old('anggota_id')); @endphp
-                        @if($oldA) {{ $oldA->nama }} ({{ $oldA->id_anggota }}) @endif
+                        @php($oldA = $anggota->firstWhere('id', old('anggota_id')))
+                        @if($oldA)
+                            {{ $oldA->nama }} ({{ $oldA->id_anggota }})
+                        @endif
                     @endif
                 </div>
             </div>
@@ -70,10 +72,12 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="searchable-selected" id="book_selected">
+                <div class="searchable-selected {{ old('book_id') ? 'visible' : '' }}" id="book_selected">
                     @if(old('book_id'))
-                        @php $oldB = $books->firstWhere('id', old('book_id')); @endphp
-                        @if($oldB) #{{ $oldB->id_buku }} — {{ $oldB->judul }} @endif
+                        @php($oldB = $books->firstWhere('id', old('book_id')))
+                        @if($oldB)
+                            #{{ $oldB->id_buku }} — {{ $oldB->judul }}
+                        @endif
                     @endif
                 </div>
             </div>
