@@ -33,39 +33,52 @@
             padding: 0 !important;
             overflow: visible !important;
             white-space: nowrap !important;
+            border-radius: 999px !important;
+            transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease !important;
+        }
+
+        .top-navbar .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.18) !important;
+            box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08), 0 12px 30px rgba(6, 78, 59, 0.22) !important;
+            transform: translateY(-1px) scale(1.06) !important;
+        }
+
+        .top-navbar .notification-btn[aria-expanded="true"] {
+            background: rgba(255, 255, 255, 0.22) !important;
+            box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08), 0 14px 34px rgba(6, 78, 59, 0.24) !important;
         }
 
         .top-navbar .notification-menu {
             position: absolute !important;
-            top: calc(100% + 12px) !important;
-            right: 0 !important;
+            top: calc(100% + 14px) !important;
+            right: -10px !important;
             left: auto !important;
-            width: 340px !important;
-            max-width: min(340px, calc(100vw - 24px)) !important;
-            max-height: 420px !important;
+            width: 420px !important;
+            max-width: min(420px, calc(100vw - 24px)) !important;
+            max-height: 460px !important;
             display: block !important;
-            background: rgba(255, 255, 255, 0.98) !important;
+            background: rgba(255, 255, 255, 0.99) !important;
             border: 1px solid rgba(52, 211, 153, 0.18) !important;
-            border-radius: 18px !important;
-            box-shadow: 0 25px 80px rgba(6, 78, 59, 0.18) !important;
+            border-radius: 22px !important;
+            box-shadow: 0 28px 90px rgba(6, 78, 59, 0.18) !important;
             opacity: 0 !important;
             visibility: hidden !important;
             pointer-events: none !important;
-            transform: translateY(8px) scale(0.98) !important;
-            transform-origin: top right !important;
+            transform: translate3d(0, -10px, 0) scale(0.92) !important;
+            transform-origin: calc(100% - 28px) -14px !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
             z-index: 9999 !important;
-            transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
+            transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.24s ease !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
         }
 
         .top-navbar .notification-menu.show {
             opacity: 1 !important;
             visibility: visible !important;
             pointer-events: auto !important;
-            transform: translateY(0) scale(1) !important;
+            transform: translate3d(0, 0, 0) scale(1) !important;
         }
 
         .top-navbar .notification-item,
@@ -78,21 +91,26 @@
         }
 
         .top-navbar .notification-menu-header {
+            padding: 18px 20px 14px !important;
             border-bottom: 1px solid rgba(52, 211, 153, 0.12) !important;
-            border-radius: 18px 18px 0 0 !important;
+            border-radius: 22px 22px 0 0 !important;
+            font-size: 15px !important;
+            letter-spacing: 0.01em !important;
         }
 
         .top-navbar .notification-item {
             color: #064e3b !important;
             text-decoration: none !important;
-            line-height: 1.45 !important;
+            line-height: 1.5 !important;
             border-bottom: 1px solid rgba(52, 211, 153, 0.08) !important;
-            transition: background 0.2s ease, transform 0.2s ease !important;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+            padding: 16px 20px !important;
         }
 
         .top-navbar .notification-item:hover {
             background: #f0fdf4 !important;
-            transform: translateX(2px) !important;
+            transform: translateX(3px) !important;
+            box-shadow: inset 4px 0 0 rgba(52, 211, 153, 0.9) !important;
         }
 
         .top-navbar .notification-item strong,
@@ -100,6 +118,47 @@
         .top-navbar .notification-item small {
             display: block !important;
             background: transparent !important;
+        }
+
+        .top-navbar .notification-item strong {
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            margin-bottom: 6px !important;
+            color: #064e3b !important;
+        }
+
+        .top-navbar .notification-item span {
+            font-size: 13px !important;
+            color: #475569 !important;
+            margin-bottom: 8px !important;
+        }
+
+        .top-navbar .notification-item small {
+            font-size: 11px !important;
+            color: #64748b !important;
+            letter-spacing: 0.01em !important;
+        }
+
+        .top-navbar .notification-empty {
+            padding: 20px !important;
+            color: #64748b !important;
+            text-align: center !important;
+        }
+
+        .top-navbar .notification-menu-footer {
+            padding: 14px 18px 16px !important;
+            border-radius: 0 0 22px 22px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            color: #065f46 !important;
+            text-align: center !important;
+            border-top: 1px solid rgba(52, 211, 153, 0.08) !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%) !important;
+            text-decoration: none !important;
+        }
+
+        .top-navbar .notification-menu-footer:hover {
+            background: linear-gradient(180deg, #f8fffb 0%, #dcfce7 100%) !important;
         }
     </style>
 </head>
