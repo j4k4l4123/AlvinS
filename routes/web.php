@@ -125,7 +125,6 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
     Route::post('/borrowings', [MemberBorrowingController::class, 'store'])->name('member.borrowings.store');
     Route::delete('/reservations/{reservation}', [MemberBorrowingController::class, 'cancelReservation'])->name('member.reservations.cancel');
     Route::put('/borrowings/{pinjam}/renew', [MemberBorrowingController::class, 'renew'])->name('member.borrowings.renew');
-    Route::put('/borrowings/{pinjam}/return', [MemberBorrowingController::class, 'returnBook'])->name('member.borrowings.return');
     Route::get('/history', [MemberController::class, 'dashboard'])->name('member.history');
     Route::get('/library-card', [LibraryCardController::class, 'show'])->name('member.library-card');
     Route::get('/profile/edit', [MemberProfileController::class, 'edit'])->name('member.profile.edit');

@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Permintaan - PerpusKu')
+@section('title', 'Permintaan Member - PerpusKu')
 
 @section('content')
 <div class="page-header">
     <div>
-        <h1>📝 Permintaan</h1>
-        <p class="text-muted">Kelola pengajuan pembatalan keanggotaan dari member.</p>
+        <h1>📝 Permintaan Member</h1>
+        <p class="text-muted">Satu tempat untuk melihat reservasi, perpanjangan, dan pembatalan keanggotaan.</p>
     </div>
 </div>
 
@@ -17,24 +17,23 @@
 @endif
 
 @if($requests->count())
-    <div class="items-grid">
+    <div style="display:grid; gap:16px;">
         @foreach($requests as $request)
-            <div class="item-card">
-                <div class="tilt-layer">
-                    <div class="item-header">
-                        <span class="status-badge {{ $request->status === 'approved' ? 'status-available' : ($request->status === 'rejected' ? 'status-borrowed' : '') }}">
-                            {{ $request->status === 'pending' ? 'Menunggu' : ucfirst($request->status) }}
-                        </span>
-                        <span class="item-id">#REQ-{{ str_pad((string) $request->id, 4, '0', STR_PAD_LEFT) }}</span>
+            <div class="content-card" id="{{ $request['kind'] === 'reservation' ? 'reservation-' . $request['id'] : '' }}" style="padding:20px; border:1px solid rgba(52, 211, 153, 0.18);">
+                <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start;">
+                    <div>
+                        <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $request['title'] }}</h3>
+                        <div class="text-muted">Member: <strong>{{ $request['member_name'] }}</strong></div>
+                        <div class="text-muted">ID Anggota: {{ $request['member_code'] }}</div>
+                        <div class="text-muted">Diajukan: {{ $request['created_at']?->format('d/m/Y H:i') ?? '-' }}</div>
+                        <div class="text-muted" style="margin-top:8px;">{{ $request['description'] }}</div>
                     </div>
-                    <div class="item-body">
-                        <h3 class="item-title">{{ $request->anggota?->nama ?? $request->user?->name ?? '-' }}</h3>
-                        <p class="item-detail">👤 ID Anggota: {{ $request->anggota?->id_anggota ?? '-' }}</p>
-                        <p class="item-detail">📌 Tipe: {{ $request->type === 'cancellation' ? 'Pembatalan Keanggotaan' : ucfirst($request->type) }}</p>
-                        <p class="item-detail">📅 Diajukan: {{ $request->created_at?->format('d/m/Y H:i') ?? '-' }}</p>
-                        <p class="item-desc" style="margin-top:10px;">{{ \Illuminate\Support\Str::limit($request->reason ?? '-', 120) }}</p>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
-                            <a href="{{ route('membership-requests.show', $request->id) }}" class="btn-action">Lihat Detail</a>
+                    <div style="text-align:right; min-width:220px;">
+                        <span class="status-badge {{ $request['status'] === 'approved' ? 'status-available' : ($request['status'] === 'rejected' || $request['status'] === 'expired' ? 'status-borrowed' : '') }}">
+                            {{ $request['status'] === 'pending' ? 'Menunggu' : ucfirst($request['status']) }}
+                        </span>
+                        <div style="margin-top:12px;">
+                            <a href="{{ $request['detail_url'] }}" class="btn-action">Lihat / Proses</a>
                         </div>
                     </div>
                 </div>
@@ -49,7 +48,7 @@
     <div class="empty-state">
         <div class="empty-icon">📨</div>
         <h3>Belum ada permintaan</h3>
-        <p class="text-muted">Saat ini belum ada pengajuan pembatalan keanggotaan.</p>
+        <p class="text-muted">Reservasi, perpanjangan, dan pembatalan keanggotaan akan muncul di sini.</p>
     </div>
 @endif
 @endsection

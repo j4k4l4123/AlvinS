@@ -4,15 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\LibrarianRegistrationRequest;
 use App\Models\Role;
+use App\Models\SystemNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class LibrarianRegistrationRequestController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
+        if (! Schema::hasTable('librarian_registration_requests')) {
+            return back()->with('error', 'Fitur permintaan librarian belum aktif. Jalankan migrasi database terlebih dahulu.');
+        }
+
         $validated = $request->validate([
             'reason' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -46,15 +52,19 @@ class LibrarianRegistrationRequestController extends Controller
 
     public function index(): View
     {
-        $requests = LibrarianRegistrationRequest::with(['user', 'processedBy'])
-            ->latest()
-            ->paginate(10);
+        $requests = Schema::hasTable('librarian_registration_requests')
+            ? LibrarianRegistrationRequest::with(['user', 'processedBy'])->latest()->paginate(10)
+            : collect();
 
         return view('librarian-registration-requests.index', compact('requests'));
     }
 
     public function update(Request $request, LibrarianRegistrationRequest $librarianRegistrationRequest): RedirectResponse
     {
+        if (! Schema::hasTable('librarian_registration_requests')) {
+            return back()->with('error', 'Fitur permintaan librarian belum aktif. Jalankan migrasi database terlebih dahulu.');
+        }
+
         $validated = $request->validate([
             'status' => ['required', 'in:approved,rejected'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -76,6 +86,19 @@ class LibrarianRegistrationRequestController extends Controller
                 $role = Role::where('name', 'librarian')->firstOrFail();
                 $librarianRegistrationRequest->user->roles()->syncWithoutDetaching([$role->id]);
             }
+
+            SystemNotification::create([
+                'user_id' => $librarianRegistrationRequest->user_id,
+                'type' => 'librarian_request_' . $validated['status'],
+                'title' => $validated['status'] === 'approved' ? 'Akses librarian disetujui' : 'Akses librarian ditolak',
+                'message' => $validated['status'] === 'approved'
+                    ? 'Selamat! Permintaan akses librarian kamu telah disetujui. Silakan login ulang jika menu librarian belum langsung muncul.'
+                    : 'Maaf, permintaan akses librarian kamu ditolak.' . (($validated['notes'] ?? null) ? ' Catatan: ' . $validated['notes'] : ''),
+                'data' => [
+                    'request_id' => $librarianRegistrationRequest->id,
+                    'status' => $validated['status'],
+                ],
+            ]);
         });
 
         return back()->with('success', 'Permintaan librarian berhasil diproses.');

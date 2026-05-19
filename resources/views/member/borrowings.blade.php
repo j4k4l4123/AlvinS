@@ -124,11 +124,7 @@
                         @else
                             <button type="button" class="btn-action" style="background:#94a3b8; color:white;">Menunggu Approval</button>
                         @endif
-                        <form method="POST" action="{{ route('member.borrowings.return', $borrowing) }}">
-                            @csrf
-                            @method('PUT')
-                            <button type="submit" class="btn-return">Kembalikan</button>
-                        </form>
+                        <button type="button" class="btn-return" style="opacity:.7; cursor:not-allowed;">Pengembalian Offline via Librarian</button>
                     </div>
                 </div>
             @endforeach

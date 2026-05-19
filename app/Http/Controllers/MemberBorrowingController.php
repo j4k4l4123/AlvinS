@@ -8,7 +8,6 @@ use App\Models\Pinjam;
 use App\Models\RenewalRequest;
 use App\Support\NotificationHelper;
 use App\Services\BorrowingService;
-use App\Services\FineService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -110,16 +109,6 @@ class MemberBorrowingController extends Controller
         );
 
         return back()->with('success', 'Permintaan perpanjangan berhasil dikirim ke librarian untuk disetujui.');
-    }
-
-    public function returnBook(Request $request, Pinjam $pinjam, FineService $fineService): RedirectResponse
-    {
-        abort_if($pinjam->anggota?->user_id !== $request->user()?->id, 403);
-        abort_if($pinjam->status !== 'dipinjam', 422, 'Buku ini sudah dikembalikan.');
-
-        $fineService->processReturn($pinjam->id, now()->toDateString());
-
-        return back()->with('success', 'Buku berhasil dikembalikan.');
     }
 
     public function reserve(Request $request, Book $book, BorrowingService $borrowingService): RedirectResponse

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookReservation;
+use App\Support\NotificationHelper;
 use App\Services\BorrowingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,11 +54,24 @@ class ReservationApprovalController extends Controller
                         now()->toDateString(),
                         now()->addDays(BorrowingService::DEFAULT_BORROW_DAYS)->toDateString()
                     );
-
-                    return;
+                } else {
+                    $reservation->update(['status' => 'rejected']);
                 }
 
-                $reservation->update(['status' => 'rejected']);
+                if ($reservation->user_id) {
+                    NotificationHelper::send(
+                        $reservation->user_id,
+                        'reservation_' . $validated['status'],
+                        $validated['status'] === 'approved' ? 'Reservasi disetujui' : 'Reservasi ditolak',
+                        $validated['status'] === 'approved'
+                            ? 'Reservasi buku "' . ($reservation->book?->judul ?? '-') . '" disetujui dan buku sudah dipinjamkan ke akun kamu.'
+                            : 'Reservasi buku "' . ($reservation->book?->judul ?? '-') . '" ditolak oleh librarian.',
+                        [
+                            'reservation_id' => $reservation->id,
+                            'status' => $validated['status'],
+                        ]
+                    );
+                }
             });
         } catch (\Throwable $e) {
             return back()->with('error', 'Reservasi gagal diproses: ' . $e->getMessage());

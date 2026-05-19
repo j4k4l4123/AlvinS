@@ -3,20 +3,93 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anggota;
+use App\Models\BookReservation;
 use App\Models\MembershipRequest;
 use App\Models\Pengembalian;
 use App\Models\Pinjam;
+use App\Models\RenewalRequest;
 use App\Support\NotificationHelper;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class MembershipRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requests = MembershipRequest::with(['user', 'anggota', 'processedBy'])->latest()->paginate(10);
+        $membershipRequests = MembershipRequest::with(['user', 'anggota', 'processedBy'])
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'kind' => 'membership',
+                    'id' => $item->id,
+                    'status' => $item->status,
+                    'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
+                    'member_code' => $item->anggota?->id_anggota ?? '-',
+                    'title' => 'Pembatalan Keanggotaan',
+                    'description' => $item->reason ?? '-',
+                    'created_at' => $item->created_at,
+                    'detail_url' => route('membership-requests.show', $item->id),
+                    'processed_at' => $item->processed_at,
+                ];
+            });
 
-        return view('membership-requests.index', compact('requests'));
+        $renewalRequests = RenewalRequest::with(['user', 'anggota', 'borrowing.book', 'processedBy'])
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'kind' => 'renewal',
+                    'id' => $item->id,
+                    'status' => $item->status,
+                    'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
+                    'member_code' => $item->anggota?->id_anggota ?? '-',
+                    'title' => 'Perpanjangan Peminjaman',
+                    'description' => 'Buku: ' . ($item->borrowing?->book?->judul ?? '-'),
+                    'created_at' => $item->created_at,
+                    'detail_url' => route('renewal-requests.show', $item),
+                    'processed_at' => $item->processed_at,
+                ];
+            });
+
+        $reservationRequests = BookReservation::with(['user', 'anggota', 'book'])
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'kind' => 'reservation',
+                    'id' => $item->id,
+                    'status' => $item->status,
+                    'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
+                    'member_code' => $item->anggota?->id_anggota ?? '-',
+                    'title' => 'Reservasi Buku',
+                    'description' => 'Buku: ' . ($item->book?->judul ?? '-'),
+                    'created_at' => $item->created_at,
+                    'detail_url' => route('reservations.index') . '#reservation-' . $item->id,
+                    'processed_at' => null,
+                ];
+            });
+
+        $merged = Collection::make()
+            ->concat($membershipRequests)
+            ->concat($renewalRequests)
+            ->concat($reservationRequests)
+            ->sortByDesc('created_at')
+            ->values();
+
+        $page = (int) $request->get('page', 1);
+        $perPage = 12;
+        $paginated = new LengthAwarePaginator(
+            $merged->forPage($page, $perPage)->values(),
+            $merged->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('membership-requests.index', ['requests' => $paginated]);
     }
 
     public function show($id)
