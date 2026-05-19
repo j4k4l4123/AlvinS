@@ -47,7 +47,7 @@
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Peminjaman Saya</h3><p class="item-detail">Perpanjang atau kembalikan buku</p></div></div>
     </a>
     <a href="{{ route('member.notifications') }}" class="item-card">
-        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Notifikasi</h3><p class="item-detail">{{ $notificationsCount }} notifikasi belum dibaca</p></div></div>
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Notifikasi</h3><p class="item-detail">Lihat semua pemberitahuan akunmu</p></div></div>
     </a>
     <a href="{{ route('member.fines') }}" class="item-card">
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Denda</h3><p class="item-detail">Total belum lunas Rp {{ number_format($totalFines, 0, ',', '.') }}</p></div></div>
