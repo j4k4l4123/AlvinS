@@ -30,6 +30,9 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/login', [PageController::class, 'login'])->name('login');
     Route::post('/login', LoginPostController::class)->name('login.post');
 
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.post');
+
     Route::get('/password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
@@ -45,9 +48,6 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.post');
-
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('librarian.dashboard');
 
     Route::get('/database', [PageController::class, 'database'])->name('pengguna.index');

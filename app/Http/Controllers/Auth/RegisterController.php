@@ -9,6 +9,7 @@ use App\Models\MemberProfile;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\LibraryCardService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
@@ -65,6 +66,13 @@ class RegisterController extends Controller
             return $user;
         });
 
-        return redirect()->route('anggota.index')->with('success', 'Registrasi anggota berhasil! Kartu perpustakaan digital sudah dibuat.');
+        if ($request->user()?->isLibrarian()) {
+            return redirect()->route('anggota.index')->with('success', 'Registrasi anggota berhasil! Kartu perpustakaan digital sudah dibuat.');
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('member.dashboard')->with('success', 'Registrasi berhasil! Kartu perpustakaan digital kamu sudah dibuat.');
     }
 }

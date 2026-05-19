@@ -41,7 +41,7 @@
 </form>
 
 <p><a href="{{ route('password.request') }}">Forgot password?</a></p>
-<p style="color:#666;">Registrasi anggota hanya bisa dilakukan oleh librarian melalui halaman internal.</p>
+<p><a href="{{ route('register') }}">Create an account</a></p>
 </body>
 </html>
 
