@@ -64,31 +64,6 @@
         </div>
     @endif
 
-    @if(! $librarianRequestFeatureReady)
-        <div class="alert-error" style="margin-top:16px;">
-            <span class="alert-icon">⚠️</span> Fitur permintaan librarian belum aktif karena migrasi database belum dijalankan.
-        </div>
-    @elseif($pendingLibrarianRequest)
-        <div class="alert-error" style="margin-top:16px;">
-            <span class="alert-icon">⏳</span> Permintaan akses librarian kamu masih menunggu persetujuan.
-        </div>
-    @elseif($user->isMember() && ! $user->isLibrarian())
-        <div style="margin-top:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.68); border:1px solid rgba(52,211,153,0.18);">
-            <h3 style="margin-top:0;">Ajukan Jadi Librarian</h3>
-            <p class="text-muted">Kalau kamu memang membutuhkan akses librarian, kirim permintaan dari sini. Permintaan akan ditinjau terlebih dahulu.</p>
-            <form method="POST" action="{{ route('librarian-registration-requests.store') }}">
-                @csrf
-                <div class="form-group full-width">
-                    <label for="reason">Alasan</label>
-                    <textarea id="reason" name="reason" rows="4" class="form-input" placeholder="Tulis alasan kenapa kamu membutuhkan akses librarian..."></textarea>
-                </div>
-                <div class="form-actions" style="justify-content:flex-start; margin-top:12px;">
-                    <button type="submit" class="btn-submit">Kirim Permintaan</button>
-                </div>
-            </form>
-        </div>
-    @endif
-
     @if($user->isMember())
         <div style="margin-top:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.68); border:1px solid rgba(52,211,153,0.18);">
             <div class="text-muted" style="margin-bottom:8px;">Pengaturan Akun</div>
@@ -99,12 +74,5 @@
         </div>
     @endif
 
-    @if($user->isMember() && ! $user->isLibrarian())
-        <div style="margin-top:22px; padding:16px; border-radius:16px; background:rgba(236,253,245,0.7); border:1px solid rgba(52,211,153,0.18);">
-            <div class="text-muted" style="margin-bottom:8px;">Pengajuan</div>
-            <h3 style="margin:0 0 10px; color:var(--pu-forest);">Mau jadi librarian?</h3>
-            <p class="text-muted" style="margin-bottom:0;">Gunakan form pengajuan di halaman ini untuk meminta akses librarian.</p>
-        </div>
-    @endif
 </div>
 @endsection

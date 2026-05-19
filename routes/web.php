@@ -25,7 +25,9 @@ use App\Http\Controllers\PinjamController;
 use App\Http\Middleware\LibrarianMiddleware;
 use App\Http\Middleware\MemberMiddleware;
 use App\Http\Middleware\RoleBasedRedirect;
+use App\Models\LibrarianRegistrationRequest;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/', [PageController::class, 'login']);
@@ -131,6 +133,16 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
     Route::get('/library-card', [LibraryCardController::class, 'show'])->name('member.library-card');
     Route::get('/profile/edit', [MemberProfileController::class, 'edit'])->name('member.profile.edit');
     Route::put('/profile', [MemberProfileController::class, 'update'])->name('member.profile.update');
+    Route::get('/pengajuan', function () {
+        $librarianRequestFeatureReady = Schema::hasTable('librarian_registration_requests');
+        $hasPendingLibrarianRequest = $librarianRequestFeatureReady
+            ? LibrarianRegistrationRequest::where('user_id', auth()->id())
+                ->where('status', 'pending')
+                ->exists()
+            : false;
+
+        return view('member.submissions', compact('librarianRequestFeatureReady', 'hasPendingLibrarianRequest'));
+    })->name('member.submissions');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('member.notifications');
     Route::get('/fines', [FineController::class, 'index'])->name('member.fines');
     Route::put('/fines/{fine}/pay', [FineController::class, 'pay'])->name('member.fines.pay');

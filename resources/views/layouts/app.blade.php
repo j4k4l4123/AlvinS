@@ -11,16 +11,43 @@
         $user = auth()->user();
         $isLibrarian = $user?->isLibrarian();
         $isMember = $user?->isMember();
+        $notificationCount = $navbarNotifications->count();
     @endphp
 
     <nav class="top-navbar" id="topNavbar">
         <button class="hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
         <a href="{{ route('dashboard') }}" class="navbar-brand">📚 PerpusKu</a>
         @auth
-            <form method="POST" action="{{ route('logout') }}" style="margin-left:auto;">
-                @csrf
-                <button type="submit" class="btn-cancel">Logout</button>
-            </form>
+            <div class="navbar-actions">
+                @if($isMember)
+                    <div class="notification-dropdown">
+                        <button type="button" class="notification-btn" onclick="toggleNotifications(event)" title="Notifikasi">
+                            🔔
+                            @if($notificationCount > 0)
+                                <span class="notification-badge">{{ $notificationCount }}</span>
+                            @endif
+                        </button>
+                        <div class="notification-menu" id="notificationMenu">
+                            <div class="notification-menu-header">Notifikasi</div>
+                            @forelse($navbarNotifications as $notification)
+                                <a href="{{ route('member.notifications') }}" class="notification-item">
+                                    <strong>{{ $notification->title }}</strong>
+                                    <span>{{ $notification->message }}</span>
+                                    <small>{{ $notification->created_at?->diffForHumans() }}</small>
+                                </a>
+                            @empty
+                                <div class="notification-empty">Belum ada notifikasi.</div>
+                            @endforelse
+                            <a href="{{ route('member.notifications') }}" class="notification-menu-footer">Lihat semua</a>
+                        </div>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="btn-cancel">Logout</button>
+                </form>
+            </div>
         @endauth
     </nav>
 
@@ -90,11 +117,6 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('member.notifications') }}" class="{{ request()->routeIs('member.notifications*') ? 'active' : '' }}">
-                            <span class="nav-icon">🔔</span> <span class="nav-text">Notifikasi</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="{{ route('member.fines') }}" class="{{ request()->routeIs('member.fines*') ? 'active' : '' }}">
                             <span class="nav-icon">💸</span> <span class="nav-text">Denda</span>
                         </a>
@@ -102,6 +124,11 @@
                     <li>
                         <a href="{{ route('member.library-card') }}" class="{{ request()->routeIs('member.library-card') ? 'active' : '' }}">
                             <span class="nav-icon">🪪</span> <span class="nav-text">Kartu Saya</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('member.submissions') }}" class="{{ request()->routeIs('member.submissions') || request()->routeIs('member.cancel-membership') ? 'active' : '' }}">
+                            <span class="nav-icon">📝</span> <span class="nav-text">Pengajuan</span>
                         </a>
                     </li>
                 @endif
@@ -243,6 +270,24 @@
         if (localStorage.getItem('sidebarCollapsed') === 'true') {
             document.getElementById('appWrapper').classList.add('sidebar-collapsed');
         }
+
+        function toggleNotifications(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('notificationMenu');
+            if (!menu) return;
+            menu.classList.toggle('show');
+        }
+
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('notificationMenu');
+            const dropdown = document.querySelector('.notification-dropdown');
+
+            if (!menu || !dropdown) return;
+
+            if (!dropdown.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
     </script>
 </body>
 </html>
