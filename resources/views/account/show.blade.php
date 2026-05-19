@@ -64,7 +64,11 @@
         </div>
     @endif
 
-    @if($pendingLibrarianRequest)
+    @if(! $librarianRequestFeatureReady)
+        <div class="alert-error" style="margin-top:16px;">
+            <span class="alert-icon">⚠️</span> Fitur permintaan librarian belum aktif karena migrasi database belum dijalankan.
+        </div>
+    @elseif($pendingLibrarianRequest)
         <div class="alert-error" style="margin-top:16px;">
             <span class="alert-icon">⏳</span> Permintaan akses librarian kamu masih menunggu persetujuan.
         </div>
