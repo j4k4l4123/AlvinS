@@ -11,6 +11,7 @@
         $user = auth()->user();
         $isLibrarian = $user?->isLibrarian();
         $isMember = $user?->isMember();
+        $navbarNotifications = $navbarNotifications ?? collect();
         $notificationCount = $navbarNotifications->count();
     @endphp
 
@@ -272,9 +273,13 @@
         }
 
         function toggleNotifications(event) {
-            event.stopPropagation();
+            if (event) {
+                event.stopPropagation();
+            }
+
             const menu = document.getElementById('notificationMenu');
             if (!menu) return;
+
             menu.classList.toggle('show');
         }
 
