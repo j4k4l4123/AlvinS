@@ -44,20 +44,28 @@
             max-width: min(340px, calc(100vw - 24px)) !important;
             max-height: 420px !important;
             display: block !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            border: 1px solid rgba(52, 211, 153, 0.18) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 25px 80px rgba(6, 78, 59, 0.18) !important;
             opacity: 0 !important;
             visibility: hidden !important;
             pointer-events: none !important;
-            transform: translateY(8px) !important;
+            transform: translateY(8px) scale(0.98) !important;
+            transform-origin: top right !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
             z-index: 9999 !important;
+            transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
         }
 
         .top-navbar .notification-menu.show {
             opacity: 1 !important;
             visibility: visible !important;
             pointer-events: auto !important;
-            transform: translateY(0) !important;
+            transform: translateY(0) scale(1) !important;
         }
 
         .top-navbar .notification-item,
@@ -66,18 +74,32 @@
         .top-navbar .notification-empty {
             display: block !important;
             white-space: normal !important;
+            background: #ffffff !important;
+        }
+
+        .top-navbar .notification-menu-header {
+            border-bottom: 1px solid rgba(52, 211, 153, 0.12) !important;
+            border-radius: 18px 18px 0 0 !important;
         }
 
         .top-navbar .notification-item {
             color: #064e3b !important;
             text-decoration: none !important;
             line-height: 1.45 !important;
+            border-bottom: 1px solid rgba(52, 211, 153, 0.08) !important;
+            transition: background 0.2s ease, transform 0.2s ease !important;
+        }
+
+        .top-navbar .notification-item:hover {
+            background: #f0fdf4 !important;
+            transform: translateX(2px) !important;
         }
 
         .top-navbar .notification-item strong,
         .top-navbar .notification-item span,
         .top-navbar .notification-item small {
             display: block !important;
+            background: transparent !important;
         }
     </style>
 </head>
