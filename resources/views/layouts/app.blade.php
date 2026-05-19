@@ -5,6 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'PerpusKu')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .top-navbar .navbar-actions {
+            margin-left: auto !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            position: relative !important;
+            flex: 0 0 auto !important;
+        }
+
+        .top-navbar .notification-dropdown {
+            position: relative !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            flex: 0 0 auto !important;
+        }
+
+        .top-navbar .notification-btn {
+            position: relative !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 42px !important;
+            min-width: 42px !important;
+            height: 42px !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            white-space: nowrap !important;
+        }
+
+        .top-navbar .notification-menu {
+            position: absolute !important;
+            top: calc(100% + 12px) !important;
+            right: 0 !important;
+            left: auto !important;
+            width: 340px !important;
+            max-width: min(340px, calc(100vw - 24px)) !important;
+            max-height: 420px !important;
+            display: block !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            transform: translateY(8px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            z-index: 9999 !important;
+        }
+
+        .top-navbar .notification-menu.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transform: translateY(0) !important;
+        }
+
+        .top-navbar .notification-item,
+        .top-navbar .notification-menu-header,
+        .top-navbar .notification-menu-footer,
+        .top-navbar .notification-empty {
+            display: block !important;
+            white-space: normal !important;
+        }
+
+        .top-navbar .notification-item {
+            color: #064e3b !important;
+            text-decoration: none !important;
+            line-height: 1.45 !important;
+        }
+
+        .top-navbar .notification-item strong,
+        .top-navbar .notification-item span,
+        .top-navbar .notification-item small {
+            display: block !important;
+        }
+    </style>
 </head>
 <body class="@yield('body-class')">
     @php
