@@ -22,7 +22,8 @@
             flex: 0 0 auto !important;
         }
 
-        .top-navbar .notification-btn {
+        .top-navbar .notification-btn,
+        .top-navbar .hamburger-btn {
             position: relative !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -34,16 +35,21 @@
             overflow: visible !important;
             white-space: nowrap !important;
             border-radius: 999px !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
             transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease !important;
         }
 
-        .top-navbar .notification-btn:hover {
+        .top-navbar .notification-btn:hover,
+        .top-navbar .hamburger-btn:hover {
             background: rgba(255, 255, 255, 0.18) !important;
             box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08), 0 12px 30px rgba(6, 78, 59, 0.22) !important;
             transform: translateY(-1px) scale(1.06) !important;
         }
 
-        .top-navbar .notification-btn[aria-expanded="true"] {
+        .top-navbar .notification-btn[aria-expanded="true"],
+        .top-navbar .hamburger-btn:focus-visible {
             background: rgba(255, 255, 255, 0.22) !important;
             box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08), 0 14px 34px rgba(6, 78, 59, 0.24) !important;
         }
