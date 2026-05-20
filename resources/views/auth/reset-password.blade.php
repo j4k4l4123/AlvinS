@@ -44,4 +44,3 @@
 <p><a href="{{ route('login') }}">Back to login</a></p>
 </body>
 </html>
-
