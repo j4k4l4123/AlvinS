@@ -13,7 +13,20 @@ class LibraryCardService
 
     public function generateSequentialCardNumber(?int $sequence = null): string
     {
-        $sequence ??= LibraryCard::count() + 1;
+        if ($sequence === null) {
+            $lastCardNumber = LibraryCard::query()
+                ->where('card_number', 'like', 'MEM-%')
+                ->orderByDesc('id')
+                ->value('card_number');
+
+            $lastSequence = 0;
+
+            if ($lastCardNumber && preg_match('/^MEM-(\d+)$/', $lastCardNumber, $matches)) {
+                $lastSequence = (int) $matches[1];
+            }
+
+            $sequence = $lastSequence + 1;
+        }
 
         return 'MEM-' . str_pad((string) $sequence, 6, '0', STR_PAD_LEFT);
     }
