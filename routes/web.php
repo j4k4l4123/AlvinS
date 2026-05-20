@@ -91,6 +91,8 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/pinjam/{id}', [PinjamController::class, 'show'])->name('pinjam.show');
     Route::get('/pinjam/{id}/edit', [PinjamController::class, 'edit'])->name('pinjam.edit');
     Route::put('/pinjam/{id}', [PinjamController::class, 'update'])->name('pinjam.update');
+    Route::put('/pinjam/{id}/lost', [PinjamController::class, 'markLost'])->name('pinjam.lost');
+    Route::put('/pinjam/{id}/damaged', [PinjamController::class, 'markDamaged'])->name('pinjam.damaged');
     Route::delete('/pinjam/{id}', [PinjamController::class, 'destroy'])->name('pinjam.destroy');
 
     Route::get('/pengembalian', [PengembalianController::class, 'index'])->name('pengembalian.index');
@@ -109,10 +111,12 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/membership-requests', [MembershipRequestController::class, 'index'])->name('membership-requests.index');
     Route::get('/membership-requests/reservasi', [MembershipRequestController::class, 'reservations'])->name('membership-requests.reservations');
     Route::get('/membership-requests/reservasi/{reservation}', [MembershipRequestController::class, 'reservationsShow'])->name('membership-requests.reservations.show');
+    Route::get('/membership-requests/pembatalan', [MembershipRequestController::class, 'cancellations'])->name('membership-requests.cancellations');
     Route::get('/membership-requests/perpanjangan', [MembershipRequestController::class, 'renewals'])->name('membership-requests.renewals');
     Route::get('/membership-requests/perpanjangan/{renewalRequest}', [MembershipRequestController::class, 'renewalsShow'])->name('membership-requests.renewals.show');
     Route::get('/membership-requests/pengajuan-librarian', [MembershipRequestController::class, 'librarianRegistrations'])->name('membership-requests.librarian-registrations');
     Route::get('/membership-requests/pengajuan-librarian/{librarianRegistrationRequest}', [MembershipRequestController::class, 'librarianRegistrationsShow'])->name('membership-requests.librarian-registrations.show');
+    Route::get('/librarian-registration-requests', [LibrarianRegistrationRequestController::class, 'index'])->name('librarian-registration-requests.index');
     Route::get('/membership-requests/{id}', [MembershipRequestController::class, 'show'])->name('membership-requests.show');
     Route::put('/membership-requests/{id}', [MembershipRequestController::class, 'update'])->name('membership-requests.update');
     Route::put('/librarian-registration-requests/{librarianRegistrationRequest}', [LibrarianRegistrationRequestController::class, 'update'])->name('librarian-registration-requests.update');

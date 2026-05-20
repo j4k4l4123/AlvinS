@@ -10,6 +10,10 @@ class Book extends Model
 {
     protected $casts = [
         'reference_only' => 'boolean',
+        'price' => 'decimal:2',
+        'daily_late_fee' => 'decimal:2',
+        'max_loan_days' => 'integer',
+        'max_renewals' => 'integer',
     ];
 
     protected $fillable = [
@@ -17,6 +21,7 @@ class Book extends Model
         'author_id',
         'judul',
         'barcode',
+        'copy_code_prefix',
         'isbn',
         'pengarang',
         'penerbit',
@@ -32,7 +37,11 @@ class Book extends Model
         'daily_late_fee',
         'keterangan',
         'stock',
+        'copy_status',
+        'copy_condition',
         'reference_only',
+        'max_loan_days',
+        'max_renewals',
     ];
 
     public function author(): BelongsTo
@@ -77,21 +86,39 @@ class Book extends Model
 
     public function isAvailable(): bool
     {
-        return $this->availableStock() > 0;
+        return $this->availableStock() > 0 && ! in_array($this->copy_status, ['lost', 'damaged', 'maintenance'], true);
+    }
+
+    public function isReservable(): bool
+    {
+        return ! $this->reference_only && ! $this->isAvailable() && ! in_array($this->copy_status, ['lost', 'damaged', 'maintenance'], true);
     }
 
     public function canBeBorrowed(): bool
     {
-        return ! $this->reference_only && $this->isAvailable();
+        return ! $this->reference_only && $this->availableStock() > 0 && ! in_array($this->copy_status, ['lost', 'damaged', 'maintenance'], true);
     }
 
     public function activeReservation(): ?BookReservation
     {
         return $this->reservations()
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'approved'])
             ->where('expires_at', '>', now())
-            ->latest()
+            ->orderBy('queue_position')
             ->first();
+    }
+
+    public function copyStatusLabel(): string
+    {
+        return match ($this->copy_status) {
+            'available' => 'Tersedia',
+            'borrowed' => 'Dipinjam',
+            'reserved' => 'Direservasi',
+            'lost' => 'Hilang',
+            'damaged' => 'Rusak',
+            'maintenance' => 'Perawatan',
+            default => ucfirst((string) $this->copy_status),
+        };
     }
 
     public function scopeSearch($query, string $keyword)

@@ -7,15 +7,18 @@ use App\Models\Anggota;
 use App\Models\Pengembalian;
 use App\Models\Pinjam;
 use App\Services\FineService;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 
 class PengembalianController extends Controller
 {
     protected FineService $fineService;
+    protected InventoryService $inventoryService;
 
-    public function __construct(FineService $fineService)
+    public function __construct(FineService $fineService, InventoryService $inventoryService)
     {
         $this->fineService = $fineService;
+        $this->inventoryService = $inventoryService;
     }
 
     public function index(Request $request)
@@ -76,9 +79,12 @@ class PengembalianController extends Controller
     public function destroy($id)
     {
         $pengembalian = Pengembalian::with('fine')->findOrFail($id);
-        $pinjam = Pinjam::findOrFail($pengembalian->pinjam_id);
+        $pinjam = Pinjam::with('book')->findOrFail($pengembalian->pinjam_id);
 
         $pinjam->update(['status' => 'dipinjam']);
+        if ($pinjam->book) {
+            $this->inventoryService->refreshBookStatus($pinjam->book->fresh());
+        }
         $pengembalian->fine()?->delete();
         $pengembalian->delete();
 

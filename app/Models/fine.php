@@ -12,6 +12,7 @@ class Fine extends Model
         'pengembalian_id',
         'anggota_id',
         'amount',
+        'type',
         'status',
         'paid_at',
         'notes',

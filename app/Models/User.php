@@ -90,11 +90,16 @@ class User extends Authenticatable
 
     public function isLibrarian(): bool
     {
-        return $this->hasRole('librarian');
+        return $this->hasRole(Role::LIBRARIAN) || $this->hasRole(Role::ADMIN);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole(Role::ADMIN);
     }
 
     public function isMember(): bool
     {
-        return $this->hasRole('member');
+        return $this->hasRole(Role::MEMBER);
     }
 }

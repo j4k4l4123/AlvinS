@@ -6,9 +6,14 @@ use App\Models\RenewalRequest;
 use App\Services\BorrowingService;
 use App\Support\NotificationHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RenewalRequestController extends Controller
 {
+    public function __construct(protected BorrowingService $borrowingService)
+    {
+    }
+
     public function index()
     {
         $requests = RenewalRequest::with(['user', 'anggota', 'borrowing.book', 'processedBy'])
@@ -32,18 +37,18 @@ class RenewalRequestController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $renewalRequest->update([
-            'status' => $validated['status'],
-            'notes' => $validated['notes'] ?? $renewalRequest->notes,
-            'processed_by' => auth()->id(),
-            'processed_at' => now(),
-        ]);
+        DB::transaction(function () use ($renewalRequest, $validated) {
+            if ($validated['status'] === 'approved' && $renewalRequest->borrowing?->status === 'dipinjam') {
+                $this->borrowingService->renew($renewalRequest->borrowing);
+            }
 
-        if ($validated['status'] === 'approved' && $renewalRequest->borrowing?->status === 'dipinjam') {
-            $renewalRequest->borrowing->update([
-                'tanggal_kembali' => $renewalRequest->borrowing->tanggal_kembali->copy()->addDays(BorrowingService::DEFAULT_BORROW_DAYS),
+            $renewalRequest->update([
+                'status' => $validated['status'],
+                'notes' => $validated['notes'] ?? $renewalRequest->notes,
+                'processed_by' => auth()->id(),
+                'processed_at' => now(),
             ]);
-        }
+        });
 
         if ($renewalRequest->user_id) {
             NotificationHelper::send(
@@ -60,6 +65,6 @@ class RenewalRequestController extends Controller
             );
         }
 
-        return redirect()->route('renewal-requests.index')->with('success', 'Permintaan perpanjangan berhasil diproses.');
+        return redirect()->route('membership-requests.renewals')->with('success', 'Permintaan perpanjangan berhasil diproses.');
     }
 }

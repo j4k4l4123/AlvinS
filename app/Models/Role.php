@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
+    public const MEMBER = 'member';
+    public const LIBRARIAN = 'librarian';
+    public const ADMIN = 'admin';
+
     protected $fillable = ['name', 'display_name', 'description'];
 
     public function users(): BelongsToMany

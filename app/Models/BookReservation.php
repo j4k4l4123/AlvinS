@@ -11,11 +11,14 @@ class BookReservation extends Model
         'user_id',
         'anggota_id',
         'book_id',
+        'queue_position',
         'status',
+        'approved_at',
         'expires_at',
     ];
 
     protected $casts = [
+        'approved_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
 

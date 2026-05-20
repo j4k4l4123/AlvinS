@@ -41,21 +41,28 @@ class ReservationApprovalController extends Controller
         try {
             DB::transaction(function () use ($validated, $reservation, $borrowingService) {
                 if ($validated['status'] === 'approved') {
-                    BookReservation::where('book_id', $reservation->book_id)
-                        ->where('id', '!=', $reservation->id)
-                        ->whereIn('status', ['pending', 'approved'])
-                        ->update(['status' => 'rejected']);
+                    $book = $reservation->book;
+                    $borrowDate = now();
+                    $returnDate = $borrowDate->copy()->addDays((int) ($book?->max_loan_days ?: BorrowingService::DEFAULT_BORROW_DAYS));
 
-                    $reservation->update(['status' => 'approved']);
+                    $reservation->update([
+                        'status' => 'approved',
+                        'approved_at' => now(),
+                    ]);
 
                     $borrowingService->borrow(
                         (int) $reservation->anggota_id,
                         (int) $reservation->book_id,
-                        now()->toDateString(),
-                        now()->addDays(BorrowingService::DEFAULT_BORROW_DAYS)->toDateString()
+                        $borrowDate->toDateString(),
+                        $returnDate->toDateString()
                     );
                 } else {
                     $reservation->update(['status' => 'rejected']);
+                    $borrowingService->reindexReservationQueue((int) $reservation->book_id);
+
+                    if ($reservation->book) {
+                        $borrowingService->refreshBookInventory($reservation->book->fresh());
+                    }
                 }
 
                 if ($reservation->user_id) {

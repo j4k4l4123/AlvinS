@@ -48,12 +48,14 @@
                 <span class="detail-value">{{ $book->thn_terbit }}</span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Status</span>
+                <span class="detail-label">Status Copy</span>
                 <span class="detail-value">
-                    @if($book->isAvailable())
-                        <span class="status-badge status-available">✅ Tersedia</span>
+                    @if($book->copy_status === 'available')
+                        <span class="status-badge status-available">✅ {{ $book->copyStatusLabel() }}</span>
+                    @elseif($book->copy_status === 'reserved')
+                        <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 {{ $book->copyStatusLabel() }}</span>
                     @else
-                        <span class="status-badge status-borrowed">⏳ Dipinjam</span>
+                        <span class="status-badge status-borrowed">⏳ {{ $book->copyStatusLabel() }}</span>
                     @endif
                 </span>
             </div>
@@ -96,6 +98,28 @@
             <div class="detail-item">
                 <span class="detail-label">Dibuat</span>
                 <span class="detail-value">{{ $book->created_at->format('d-m-Y') }}</span>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-item">
+                <span class="detail-label">Prefix Kode Copy</span>
+                <span class="detail-value">{{ $book->copy_code_prefix ?? '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Kondisi Copy</span>
+                <span class="detail-value">{{ ucfirst($book->copy_condition ?? 'good') }}</span>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-item">
+                <span class="detail-label">Maks Lama Pinjam</span>
+                <span class="detail-value">{{ $book->max_loan_days ?? 14 }} hari</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Maks Perpanjangan</span>
+                <span class="detail-value">{{ $book->max_renewals ?? 1 }}x</span>
             </div>
         </div>
 

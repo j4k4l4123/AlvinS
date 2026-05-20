@@ -22,37 +22,6 @@
         </div>
     @endif
 
-    <div class="form-group full-width" style="margin-bottom:25px;">
-        <label for="existing_book_search"><span class="label-icon">🔍</span> Salin dari Buku yang Sudah Ada (Opsional)</label>
-        <div class="searchable-select" id="existingBookSelect">
-            <input type="text" id="existing_book_search" class="form-input searchable-input" placeholder="Ketik judul buku yang sudah ada untuk salin data..." autocomplete="off" onfocus="openDropdown('existing_book')" oninput="filterDropdown('existing_book', this.value)">
-            <div class="searchable-dropdown" id="existing_book_dropdown">
-                @foreach($books as $b)
-                    <div class="searchable-option"
-                         data-judul="{{ $b->judul }}"
-                         data-barcode="{{ $b->barcode }}"
-                         data-isbn="{{ $b->isbn }}"
-                         data-pengarang="{{ $b->pengarang }}"
-                         data-penerbit="{{ $b->penerbit }}"
-                         data-thn="{{ $b->thn_terbit }}"
-                         data-kategori="{{ $b->kategori }}"
-                         data-language="{{ $b->language }}"
-                         data-subject="{{ $b->subject }}"
-                         data-pages="{{ $b->number_of_pages }}"
-                         data-format="{{ $b->format }}"
-                         data-price="{{ $b->price }}"
-                         data-latefee="{{ $b->daily_late_fee }}"
-                         data-rack="{{ $b->rack_id }}"
-                         data-stock="{{ $b->stock }}"
-                         data-keterangan="{{ $b->keterangan }}"
-                         onclick="selectExistingBook(this)">
-                        #{{ $b->id_buku }} — {{ $b->judul }}
-                    </div>
-                @endforeach
-            </div>
-        </div>
-        <p style="font-size:12px;color:#6b7280;margin-top:6px;">Pilih buku yang sudah ada untuk mengisi otomatis semua field kecuali ID Buku.</p>
-    </div>
 
     <form action="{{ route('books.store') }}" method="POST" class="styled-form">
         @csrf
@@ -65,6 +34,10 @@
             <div class="form-group">
                 <label for="barcode"><span class="label-icon">🏷️</span> Barcode</label>
                 <input type="text" id="barcode" name="barcode" value="{{ old('barcode') }}" placeholder="Barcode buku" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="copy_code_prefix"><span class="label-icon">🆔</span> Prefix Kode Copy</label>
+                <input type="text" id="copy_code_prefix" name="copy_code_prefix" value="{{ old('copy_code_prefix', $nextIdBuku) }}" placeholder="Contoh: BKU001" class="form-input">
             </div>
         </div>
 
@@ -155,6 +128,36 @@
             </div>
         </div>
 
+        <div class="form-row">
+            <div class="form-group">
+                <label for="max_loan_days"><span class="label-icon">📅</span> Maks Lama Pinjam (hari)</label>
+                <input type="number" id="max_loan_days" name="max_loan_days" value="{{ old('max_loan_days', 14) }}" min="1" max="60" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="max_renewals"><span class="label-icon">🔄</span> Maks Perpanjangan</label>
+                <input type="number" id="max_renewals" name="max_renewals" value="{{ old('max_renewals', 1) }}" min="0" max="10" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="copy_status"><span class="label-icon">📦</span> Status Copy</label>
+                <select id="copy_status" name="copy_status" class="form-input">
+                    @foreach(['available' => 'Tersedia', 'borrowed' => 'Dipinjam', 'reserved' => 'Direservasi', 'lost' => 'Hilang', 'damaged' => 'Rusak', 'maintenance' => 'Perawatan'] as $value => $label)
+                        <option value="{{ $value }}" {{ old('copy_status', 'available') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="copy_condition"><span class="label-icon">🛠️</span> Kondisi Copy</label>
+                <select id="copy_condition" name="copy_condition" class="form-input">
+                    @foreach(['good' => 'Baik', 'fair' => 'Cukup', 'damaged' => 'Rusak', 'lost' => 'Hilang'] as $value => $label)
+                        <option value="{{ $value }}" {{ old('copy_condition', 'good') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
         <div class="form-group full-width">
             <label for="keterangan"><span class="label-icon">📝</span> Keterangan (Opsional)</label>
             <textarea id="keterangan" name="keterangan" rows="3" placeholder="Deskripsi singkat tentang buku" class="form-input textarea">{{ old('keterangan') }}</textarea>
@@ -170,99 +173,4 @@
     </form>
 </div>
 
-<style>
-    .searchable-select {
-        position: relative;
-    }
-    .searchable-input {
-        width: 100%;
-        cursor: pointer;
-    }
-    .searchable-dropdown {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        max-height: 250px;
-        overflow-y: auto;
-        background: white;
-        border: 2px solid #bbf7d0;
-        border-top: none;
-        border-radius: 0 0 12px 12px;
-        z-index: 50;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-    .searchable-dropdown.open {
-        display: block;
-    }
-    .searchable-option {
-        padding: 12px 18px;
-        cursor: pointer;
-        border-bottom: 1px solid #f0fdf4;
-        transition: background 0.15s;
-        color: #374151;
-    }
-    .searchable-option:hover {
-        background: #dcfce7;
-    }
-    .searchable-option.hidden {
-        display: none;
-    }
-</style>
-
-<script>
-    let activeDropdown = null;
-
-    function openDropdown(type) {
-        closeAllDropdowns();
-        document.getElementById(type + '_dropdown').classList.add('open');
-        activeDropdown = type;
-    }
-
-    function closeAllDropdowns() {
-        document.querySelectorAll('.searchable-dropdown').forEach(d => d.classList.remove('open'));
-        activeDropdown = null;
-    }
-
-    function filterDropdown(type, query) {
-        const dropdown = document.getElementById(type + '_dropdown');
-        const options = dropdown.querySelectorAll('.searchable-option');
-        query = query.toLowerCase();
-        options.forEach(opt => {
-            if (opt.textContent.toLowerCase().includes(query)) {
-                opt.classList.remove('hidden');
-            } else {
-                opt.classList.add('hidden');
-            }
-        });
-    }
-
-    function selectExistingBook(el) {
-        document.getElementById('judul').value = el.dataset.judul || '';
-        document.getElementById('barcode').value = el.dataset.barcode || '';
-        document.getElementById('isbn').value = el.dataset.isbn || '';
-        document.getElementById('pengarang').value = el.dataset.pengarang || '';
-        document.getElementById('penerbit').value = el.dataset.penerbit || '';
-        document.getElementById('thn_terbit').value = el.dataset.thn || '';
-        document.getElementById('kategori').value = el.dataset.kategori || '';
-        document.getElementById('language').value = el.dataset.language || '';
-        document.getElementById('subject').value = el.dataset.subject || '';
-        document.getElementById('number_of_pages').value = el.dataset.pages || '';
-        document.getElementById('format').value = el.dataset.format || '';
-        document.getElementById('price').value = el.dataset.price || 0;
-        document.getElementById('daily_late_fee').value = el.dataset.latefee || 0;
-        document.getElementById('rack_id').value = el.dataset.rack || '';
-        document.getElementById('stock').value = el.dataset.stock || 1;
-        document.getElementById('keterangan').value = el.dataset.keterangan || '';
-        document.getElementById('existing_book_search').value = el.textContent.trim();
-        closeAllDropdowns();
-    }
-
-    document.addEventListener('click', function(e) {
-        if (activeDropdown && !e.target.closest('#existingBookSelect')) {
-            closeAllDropdowns();
-        }
-    });
-</script>
 @endsection

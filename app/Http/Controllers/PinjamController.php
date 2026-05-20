@@ -58,7 +58,7 @@ class PinjamController extends Controller
             }])
             ->orderBy('judul')
             ->get()
-            ->filter(fn (Book $book) => $book->isAvailable());
+            ->filter(fn (Book $book) => $book->canBeBorrowed());
 
         return view('pinjam.create', compact('anggota', 'books'));
     }
@@ -108,7 +108,20 @@ class PinjamController extends Controller
             }
         }
 
+        $oldBookId = (int) $pinjam->book_id;
         $pinjam->update($validated);
+
+        if ((int) $validated['book_id'] !== $oldBookId) {
+            $newBook = Book::findOrFail((int) $validated['book_id']);
+            $pinjam->update([
+                'copy_code' => $newBook->copy_code_prefix
+                    ? strtoupper($newBook->copy_code_prefix) . '-MANUAL-' . str_pad((string) $pinjam->id, 5, '0', STR_PAD_LEFT)
+                    : $pinjam->copy_code,
+            ]);
+
+            $this->borrowingService->refreshBookInventory(Book::findOrFail($oldBookId));
+            $this->borrowingService->refreshBookInventory($newBook);
+        }
 
         return redirect()->route('pinjam.index')->with('success', 'Data peminjaman berhasil diperbarui!');
     }
@@ -118,6 +131,22 @@ class PinjamController extends Controller
         $this->borrowingService->cancel($id);
 
         return redirect()->route('pinjam.index')->with('success', 'Data peminjaman berhasil dihapus!');
+    }
+
+    public function markLost($id)
+    {
+        $pinjam = Pinjam::with('book')->findOrFail($id);
+        $this->borrowingService->markLost($pinjam);
+
+        return redirect()->route('pinjam.show', $pinjam->id)->with('success', 'Peminjaman ditandai sebagai buku hilang dan denda sudah dibuat.');
+    }
+
+    public function markDamaged($id)
+    {
+        $pinjam = Pinjam::with('book')->findOrFail($id);
+        $this->borrowingService->markDamaged($pinjam);
+
+        return redirect()->route('pinjam.show', $pinjam->id)->with('success', 'Peminjaman ditandai sebagai buku rusak dan denda sudah dibuat.');
     }
 
     public function overdue()

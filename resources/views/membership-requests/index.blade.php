@@ -19,7 +19,7 @@
         <h3 style="margin:0 0 8px; color:var(--pu-forest);">🔄 Perpanjangan</h3>
         <p class="text-muted" style="margin:0;">Review permintaan perpanjangan peminjaman.</p>
     </a>
-    <a href="{{ route('membership-requests.index') }}#pembatalan" class="content-card" style="padding:20px; text-decoration:none; color:inherit; border:1px solid rgba(52,211,153,0.18);">
+    <a href="{{ route('membership-requests.cancellations') }}" class="content-card" style="padding:20px; text-decoration:none; color:inherit; border:1px solid rgba(52,211,153,0.18);">
         <h3 style="margin:0 0 8px; color:var(--pu-forest);">❌ Pembatalan Keanggotaan</h3>
         <p class="text-muted" style="margin:0;">Tinjau permintaan pembatalan keanggotaan.</p>
     </a>
@@ -30,19 +30,13 @@
 </div>
 
 @if($requests->count())
-    <div id="pembatalan" class="page-header" style="margin-top:10px;">
-        <div>
-            <h2 style="margin:0;">Pembatalan Keanggotaan</h2>
-            <p class="text-muted">Daftar khusus pembatalan yang masuk.</p>
-        </div>
-    </div>
-
     <div style="display:grid; gap:16px;">
-        @foreach($requests->where('kind', 'membership') as $request)
+        @foreach($requests as $request)
             <div class="content-card" style="padding:20px; border:1px solid rgba(52, 211, 153, 0.18);">
                 <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start;">
                     <div>
-                        <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $request['member_name'] }}</h3>
+                        <h3 style="margin:0 0 8px; color:var(--pu-forest);">{{ $request['title'] }}</h3>
+                        <div class="text-muted">Pemohon: {{ $request['member_name'] }}</div>
                         <div class="text-muted">ID Anggota: {{ $request['member_code'] }}</div>
                         <div class="text-muted">Diajukan: {{ $request['created_at']?->format('d/m/Y H:i') ?? '-' }}</div>
                         <div class="text-muted" style="margin-top:8px;">{{ $request['description'] }}</div>
@@ -59,6 +53,8 @@
             </div>
         @endforeach
     </div>
+
+    <div style="margin-top: 16px;">{{ $requests->links() }}</div>
 @else
     <div class="empty-state">
         <div class="empty-icon">📨</div>

@@ -24,7 +24,7 @@
                     <div style="text-align:right; min-width:180px;">
                         <span class="status-badge {{ $request->status === 'approved' ? 'status-available' : ($request->status === 'rejected' ? 'status-borrowed' : '') }}">{{ ucfirst($request->status) }}</span>
                         <div style="margin-top:12px;">
-                            <a href="{{ route('renewal-requests.show', $request) }}" class="btn-action btn-view">Lihat Detail</a>
+                            <a href="{{ route('membership-requests.renewals.show', $request) }}" class="btn-action btn-view">Lihat Detail</a>
                         </div>
                     </div>
                 </div>

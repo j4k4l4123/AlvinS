@@ -44,9 +44,24 @@
 
         <div class="detail-row">
             <div class="detail-item">
+                <span class="detail-label">Kode Copy</span>
+                <span class="detail-value">{{ $pinjam->copy_code ?? '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Jumlah Perpanjangan</span>
+                <span class="detail-value">{{ $pinjam->renewal_count ?? 0 }}x</span>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-item">
                 <span class="detail-label">Status</span>
                 @if($pinjam->status == 'dipinjam')
                     <span class="detail-value status-borrowed">⏳ Dipinjam</span>
+                @elseif($pinjam->status == 'hilang')
+                    <span class="detail-value status-borrowed">🚨 Hilang</span>
+                @elseif($pinjam->status == 'rusak')
+                    <span class="detail-value status-borrowed">🛠️ Rusak</span>
                 @else
                     <span class="detail-value status-returned">✅ Dikembalikan</span>
                 @endif
@@ -68,6 +83,16 @@
         </form>
         @if($pinjam->status == 'dipinjam')
             <a href="{{ route('pengembalian.create') }}" class="btn-return">📥 Kembalikan</a>
+            <form action="{{ route('pinjam.lost', $pinjam->id) }}" method="POST" onsubmit="return confirm('Tandai buku ini sebagai hilang?');">
+                @csrf
+                @method('PUT')
+                <button type="submit" class="btn-action btn-delete">🚨 Tandai Hilang</button>
+            </form>
+            <form action="{{ route('pinjam.damaged', $pinjam->id) }}" method="POST" onsubmit="return confirm('Tandai buku ini sebagai rusak?');">
+                @csrf
+                @method('PUT')
+                <button type="submit" class="btn-action" style="background:#f59e0b; color:white;">🛠️ Tandai Rusak</button>
+            </form>
         @endif
     </div>
 </div>

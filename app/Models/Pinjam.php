@@ -17,14 +17,20 @@ class Pinjam extends Model
     protected $fillable = [
         'anggota_id',
         'book_id',
+        'copy_code',
         'tanggal_pinjam',
         'tanggal_kembali',
         'status',
+        'renewal_count',
+        'lost_at',
+        'damaged_at',
     ];
 
     protected $casts = [
         'tanggal_pinjam' => 'date',
         'tanggal_kembali' => 'date',
+        'lost_at' => 'datetime',
+        'damaged_at' => 'datetime',
     ];
 
     public function anggota(): BelongsTo
@@ -67,7 +73,7 @@ class Pinjam extends Model
             return 0;
         }
 
-        return $this->daysOverdue() * 5000;
+        return $this->daysOverdue() * (int) round((float) ($this->book?->daily_late_fee ?? 5000));
     }
 
     public function scopeOverdue($query)

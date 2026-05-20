@@ -74,7 +74,17 @@ class MembershipRequestController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('membership-requests.reservations', compact('reservations'));
+        return view('reservations.index', compact('reservations'));
+    }
+
+    public function cancellations()
+    {
+        $requests = MembershipRequest::with(['user', 'anggota', 'processedBy'])
+            ->where('type', 'cancellation')
+            ->latest()
+            ->paginate(10);
+
+        return view('membership-requests.cancellations', compact('requests'));
     }
 
     public function renewals()
@@ -83,7 +93,7 @@ class MembershipRequestController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('membership-requests.renewals', compact('requests'));
+        return view('renewal-requests.index', compact('requests'));
     }
 
     public function renewalsShow(RenewalRequest $renewalRequest)

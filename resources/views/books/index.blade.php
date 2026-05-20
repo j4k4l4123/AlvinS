@@ -11,7 +11,10 @@
 
 <div class="search-filter-box">
     <form method="GET" action="{{ $isMemberView ? route('member.books.index') : route('books.index') }}" class="search-form">
-        <input type="text" name="search" placeholder="🔍 Cari judul, pengarang, atau kategori..." value="{{ request('search') }}" class="search-input">
+        <input type="text" name="search" placeholder="🔍 Cari judul, pengarang, kategori, subjek..." value="{{ request('search') }}" class="search-input">
+
+        <input type="text" name="author" placeholder="Pengarang" value="{{ request('author') }}" class="search-input">
+        <input type="text" name="subject" placeholder="Subjek" value="{{ request('subject') }}" class="search-input">
 
         <select name="kategori" class="filter-select" onchange="this.form.submit()">
             <option value="">Semua Kategori</option>
@@ -20,8 +23,14 @@
             @endforeach
         </select>
 
+        <select name="availability" class="filter-select" onchange="this.form.submit()">
+            <option value="">Semua Status</option>
+            <option value="available" {{ request('availability') == 'available' ? 'selected' : '' }}>Tersedia</option>
+            <option value="reference_only" {{ request('availability') == 'reference_only' ? 'selected' : '' }}>Reference Only</option>
+        </select>
+
         <button type="submit" class="btn-search">Cari</button>
-        @if(request('search') || request('kategori'))
+        @if(request('search') || request('kategori') || request('author') || request('subject') || request('availability'))
             <a href="{{ $isMemberView ? route('member.books.index') : route('books.index') }}" class="btn-reset">Reset</a>
         @endif
     </form>
@@ -33,7 +42,7 @@
     </div>
 @endif
 
-@if((request('search') || request('kategori')) && $books->count() == 0)
+@if((request('search') || request('kategori') || request('author') || request('subject') || request('availability')) && $books->count() == 0)
     <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3>Hasil tidak ada</h3>
@@ -55,12 +64,14 @@
                         </div>
                         @php($activeReservation = $book->activeReservation())
                         <div class="item-status-row" style="padding: 10px 22px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                            @if($book->canBeBorrowed())
-                                <span class="status-badge status-available">✅ Tersedia</span>
-                            @elseif($book->reference_only)
+                            @if($book->reference_only)
                                 <span class="status-badge status-borrowed">📘 Reference Only</span>
+                            @elseif($book->copy_status === 'available')
+                                <span class="status-badge status-available">✅ {{ $book->copyStatusLabel() }}</span>
+                            @elseif($book->copy_status === 'reserved')
+                                <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 {{ $book->copyStatusLabel() }}</span>
                             @else
-                                <span class="status-badge status-borrowed">⏳ Dipinjam</span>
+                                <span class="status-badge status-borrowed">⏳ {{ $book->copyStatusLabel() }}</span>
                             @endif
 
                             @unless($isMemberView)
@@ -75,7 +86,9 @@
                             <p class="item-detail">🏢 {{ $book->penerbit }}, {{ $book->thn_terbit }}</p>
                             @unless($isMemberView)
                                 <p class="item-detail">🗂️ Rak: {{ $book->rack?->name ?? '-' }} | 📦 Stok: {{ $book->stock ?? 0 }}</p>
+                                <p class="item-detail">🆔 Prefix Copy: {{ $book->copy_code_prefix ?? '-' }} | 🛠️ Kondisi: {{ ucfirst($book->copy_condition ?? 'good') }}</p>
                                 <p class="item-detail">💳 Harga: Rp {{ number_format((float) ($book->price ?? 0), 0, ',', '.') }} | ⏱️ Denda/hari: Rp {{ number_format((float) ($book->daily_late_fee ?? 0), 0, ',', '.') }}</p>
+                                <p class="item-detail">📅 Maks pinjam: {{ $book->max_loan_days ?? 14 }} hari | 🔄 Maks perpanjangan: {{ $book->max_renewals ?? 1 }}x</p>
                             @endunless
                             @if($book->keterangan)
                                 <p class="item-desc">{{ Str::limit($book->keterangan, 60) }}</p>
@@ -84,7 +97,7 @@
                     </div>
                 </a>
 
-                @if($isMemberView && $book->canBeBorrowed())
+                @if($isMemberView && $book->isReservable())
                     <div style="padding: 0 22px 22px;">
                         <form method="POST" action="{{ route('member.books.reserve', $book) }}" style="margin-top:12px;">
                             @csrf

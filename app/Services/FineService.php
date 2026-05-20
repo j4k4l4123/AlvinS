@@ -11,16 +11,33 @@ use Illuminate\Support\Facades\DB;
 
 class FineService
 {
-    public const FINE_PER_DAY = 5000;
+    public function __construct(protected InventoryService $inventoryService)
+    {
+    }
 
-    public function calculateFine(string $tanggalKembali, string $tanggalDikembalikan): int
+    public const FINE_PER_DAY = 5000;
+    public const LOST_BOOK_MULTIPLIER = 1;
+    public const DAMAGED_BOOK_PERCENTAGE = 0.3;
+
+    public function calculateFine(string $tanggalKembali, string $tanggalDikembalikan, ?Pinjam $pinjam = null): int
     {
         $dueDate = Carbon::parse($tanggalKembali)->startOfDay();
         $returnDate = Carbon::parse($tanggalDikembalikan)->startOfDay();
 
         $daysLate = max(0, $dueDate->diffInDays($returnDate, false));
+        $dailyRate = (int) round((float) ($pinjam?->book?->daily_late_fee ?? self::FINE_PER_DAY));
 
-        return (int) ($daysLate * self::FINE_PER_DAY);
+        return (int) ($daysLate * $dailyRate);
+    }
+
+    public function calculateLostBookFine(Pinjam $pinjam): int
+    {
+        return (int) round((float) ($pinjam->book?->price ?? 0) * self::LOST_BOOK_MULTIPLIER);
+    }
+
+    public function calculateDamagedBookFine(Pinjam $pinjam): int
+    {
+        return (int) round((float) ($pinjam->book?->price ?? 0) * self::DAMAGED_BOOK_PERCENTAGE);
     }
 
     public function processReturn(int $pinjamId, string $tanggalDikembalikan): Pengembalian
@@ -28,7 +45,7 @@ class FineService
         return DB::transaction(function () use ($pinjamId, $tanggalDikembalikan) {
             $pinjam = Pinjam::with(['book', 'anggota.user'])->findOrFail($pinjamId);
 
-            $denda = $this->calculateFine((string) $pinjam->tanggal_kembali, $tanggalDikembalikan);
+            $denda = $this->calculateFine((string) $pinjam->tanggal_kembali, $tanggalDikembalikan, $pinjam);
 
             $pengembalian = Pengembalian::create([
                 'pinjam_id' => $pinjam->id,
@@ -41,6 +58,9 @@ class FineService
             ]);
 
             $pinjam->update(['status' => 'dikembalikan']);
+            if ($pinjam->book) {
+                $this->inventoryService->refreshBookStatus($pinjam->book->fresh());
+            }
 
             if ($denda > 0) {
                 Fine::updateOrCreate(
@@ -49,10 +69,15 @@ class FineService
                         'pengembalian_id' => $pengembalian->id,
                         'anggota_id' => $pinjam->anggota_id,
                         'amount' => $denda,
+                        'type' => 'late',
                         'status' => 'unpaid',
                         'notes' => 'Denda otomatis karena terlambat mengembalikan buku.',
                     ]
                 );
+            } else {
+                Fine::where('pinjam_id', $pinjam->id)
+                    ->where('type', 'late')
+                    ->delete();
             }
 
             if ($pinjam->anggota?->user_id) {
@@ -105,7 +130,7 @@ class FineService
                 return [
                     'pinjam' => $pinjam,
                     'days_late' => $daysLate,
-                    'fine' => $daysLate * self::FINE_PER_DAY,
+                    'fine' => $daysLate * (int) round((float) ($pinjam->book?->daily_late_fee ?? self::FINE_PER_DAY)),
                 ];
             });
     }
