@@ -20,7 +20,6 @@ use App\Http\Controllers\MembershipRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PengembalianController;
-use App\Http\Controllers\ProjectResourceController;
 use App\Http\Controllers\PinjamController;
 use App\Http\Middleware\LibrarianMiddleware;
 use App\Http\Middleware\MemberMiddleware;
@@ -54,18 +53,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('librarian.dashboard');
-
-    Route::get('/database', [PageController::class, 'database'])->name('pengguna.index');
-    Route::get('/pengguna/create', [PageController::class, 'create'])->name('pengguna.create');
-    Route::post('/pengguna', [PageController::class, 'store'])->name('pengguna.store');
-    Route::get('/pengguna/{id}/edit', [PageController::class, 'edit'])->name('pengguna.edit');
-    Route::put('/pengguna/{id}', [PageController::class, 'update'])->name('pengguna.update');
-    Route::delete('/pengguna/{id}', [PageController::class, 'destroy'])->name('pengguna.destroy');
-
     Route::get('/books', [BookController::class, 'books'])->name('books.index');
-    Route::get('/project-resources', [ProjectResourceController::class, 'index'])->name('project-resources.index');
-    Route::get('/project-resources/create', [ProjectResourceController::class, 'create'])->name('project-resources.create');
-    Route::post('/project-resources', [ProjectResourceController::class, 'store'])->name('project-resources.store');
     Route::get('/racks', [RackController::class, 'index'])->name('racks.index');
     Route::get('/racks/create', [RackController::class, 'create'])->name('racks.create');
     Route::post('/racks', [RackController::class, 'store'])->name('racks.store');

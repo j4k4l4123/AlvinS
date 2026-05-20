@@ -69,16 +69,21 @@ class PageController extends Controller
                     ];
                 });
 
-            $recentActivity = $recentActivity
-                ->merge($recentReturns)
-                ->merge($recentMembers->map(function ($memberProfile) {
-                    return [
-                        'type' => 'member',
-                        'text' => 'Anggota baru - <strong>' . e($memberProfile->nama) . '</strong>',
-                        'time' => $memberProfile->created_at,
-                    ];
-                }))
-                ->sortByDesc('time')
+            $memberActivities = $recentMembers->map(function ($memberProfile) {
+                return [
+                    'type' => 'member',
+                    'text' => 'Anggota baru - <strong>' . e($memberProfile->nama) . '</strong>',
+                    'time' => $memberProfile->created_at,
+                ];
+            })->values();
+
+            $recentActivity = collect()
+                ->concat($recentActivity->values()->all())
+                ->concat($recentReturns->values()->all())
+                ->concat($memberActivities->all())
+                ->sortByDesc(function (array $activity) {
+                    return optional($activity['time'])->timestamp ?? 0;
+                })
                 ->take(6)
                 ->values();
 
