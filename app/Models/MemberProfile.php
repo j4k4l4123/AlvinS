@@ -26,4 +26,14 @@ class MemberProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function isBanned(): bool
+    {
+        return ($this->membership_status ?? 'active') === 'banned';
+    }
+
+    public function isExpired(): bool
+    {
+        return ($this->membership_status ?? 'active') === 'expired';
+    }
 }

@@ -52,8 +52,8 @@
     <a href="{{ route('member.fines') }}" class="item-card">
         <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Denda</h3><p class="item-detail">Total belum lunas Rp {{ number_format($totalFines, 0, ',', '.') }}</p></div></div>
     </a>
-    <a href="{{ route('member.cancel-membership') }}" class="item-card">
-        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Batalkan Keanggotaan</h3><p class="item-detail">Ajukan pembatalan ke pustakawan</p></div></div>
+    <a href="{{ route('member.submissions') }}" class="item-card">
+        <div class="tilt-layer"><div class="item-body"><h3 class="item-title">Pengajuan Membership</h3><p class="item-detail">Ajukan perpanjangan atau pembatalan membership</p></div></div>
     </a>
 </div>
 

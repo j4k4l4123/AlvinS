@@ -22,7 +22,7 @@
 
 <div class="content-card" style="padding: 20px; margin-bottom:24px;">
     <h2 style="margin-bottom: 16px;">Scan Kartu & Barcode Buku</h2>
-    <p class="text-muted" style="margin-bottom:16px;">Gunakan nomor kartu perpustakaan dan barcode/ID buku untuk membuat reservasi. Reservasi aktif selama 1 hari.</p>
+    <p class="text-muted" style="margin-bottom:16px;">Gunakan nomor kartu perpustakaan dan barcode/ID buku untuk langsung meminjam buku yang tersedia.</p>
 
     <form method="POST" action="{{ route('member.borrowings.store') }}" class="styled-form">
         @csrf
@@ -37,7 +37,7 @@
             </div>
         </div>
         <div class="form-actions" style="justify-content:flex-start;">
-            <button type="submit" class="btn-submit">Scan & Reservasi Buku</button>
+            <button type="submit" class="btn-submit">Scan & Pinjam Buku</button>
         </div>
     </form>
 </div>

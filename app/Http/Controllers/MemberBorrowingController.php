@@ -54,28 +54,25 @@ class MemberBorrowingController extends Controller
         ]);
 
         try {
-            $book = Book::where('id_buku', $validated['book_barcode'])->firstOrFail();
-            $anggota = $request->user()?->anggota;
-            abort_unless($anggota, 403);
+            $pinjam = $borrowingService->borrowByBarcodes($validated['card_number'], $validated['book_barcode']);
+            $pinjam->load('book.rack');
 
-            if (($anggota->libraryCard?->card_number ?? null) !== $validated['card_number']) {
-                return back()->with('error', 'Nomor kartu tidak sesuai dengan akun member yang sedang login.');
-            }
-
-            $reservation = $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
+            $rackMessage = $pinjam->book?->rack?->name
+                ? ' Rak buku: ' . $pinjam->book->rack->name . '.'
+                : '';
 
             NotificationHelper::send(
                 $request->user()->id,
-                'reservation_created',
-                'Reservasi berhasil dibuat',
-                'Reservasi buku "' . ($book->judul ?? '-') . '" berhasil diajukan dan sedang menunggu persetujuan librarian.',
-                ['reservation_id' => $reservation->id]
+                'borrowing_created',
+                'Peminjaman berhasil dibuat',
+                'Buku "' . ($pinjam->book?->judul ?? '-') . '" berhasil dipinjam.' . $rackMessage,
+                ['pinjam_id' => $pinjam->id]
             );
+
+            return back()->with('success', 'Buku berhasil dipinjam.' . $rackMessage);
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
-
-        return back()->with('success', 'Reservasi berhasil diajukan dan sedang menunggu persetujuan librarian.');
     }
 
     public function renew(Request $request, Pinjam $pinjam): RedirectResponse

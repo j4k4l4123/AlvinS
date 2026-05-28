@@ -240,7 +240,23 @@ class MembershipRequestController extends Controller
                 return;
             }
 
-            if ($validated['status'] === 'approved') {
+            if ($membershipRequest->type === 'renewal') {
+                if ($validated['status'] === 'approved') {
+                    $libraryCard = $anggota->libraryCard;
+                    if ($libraryCard) {
+                        $baseDate = $libraryCard->expiry_date && $libraryCard->expiry_date->isFuture()
+                            ? $libraryCard->expiry_date->copy()
+                            : now();
+
+                        $libraryCard->update([
+                            'status' => 'active',
+                            'expiry_date' => $baseDate->addYear()->toDateString(),
+                        ]);
+                    }
+
+                    $memberProfile->update(['membership_status' => 'active']);
+                }
+            } elseif ($validated['status'] === 'approved') {
                 $memberProfile->update(['membership_status' => 'cancelled']);
                 $anggota->libraryCard()?->delete();
                 $membershipRequest->user?->delete();
@@ -251,11 +267,17 @@ class MembershipRequestController extends Controller
             if ($membershipRequest->user_id) {
                 NotificationHelper::send(
                     $membershipRequest->user_id,
-                    'membership_cancellation_' . $validated['status'],
-                    $validated['status'] === 'approved' ? 'Pembatalan keanggotaan disetujui' : 'Pembatalan keanggotaan ditolak',
-                    $validated['status'] === 'approved'
-                        ? 'Permintaan pembatalan keanggotaan kamu telah disetujui.'
-                        : 'Permintaan pembatalan keanggotaan kamu ditolak.' . (($validated['notes'] ?? null) ? ' Catatan: ' . $validated['notes'] : ''),
+                    'membership_' . $membershipRequest->type . '_' . $validated['status'],
+                    $membershipRequest->type === 'renewal'
+                        ? ($validated['status'] === 'approved' ? 'Perpanjangan membership disetujui' : 'Perpanjangan membership ditolak')
+                        : ($validated['status'] === 'approved' ? 'Pembatalan keanggotaan disetujui' : 'Pembatalan keanggotaan ditolak'),
+                    $membershipRequest->type === 'renewal'
+                        ? ($validated['status'] === 'approved'
+                            ? 'Permintaan perpanjangan membership kamu telah disetujui.'
+                            : 'Permintaan perpanjangan membership kamu ditolak.' . (($validated['notes'] ?? null) ? ' Catatan: ' . $validated['notes'] : ''))
+                        : ($validated['status'] === 'approved'
+                            ? 'Permintaan pembatalan keanggotaan kamu telah disetujui.'
+                            : 'Permintaan pembatalan keanggotaan kamu ditolak.' . (($validated['notes'] ?? null) ? ' Catatan: ' . $validated['notes'] : '')),
                     [
                         'membership_request_id' => $membershipRequest->id,
                         'status' => $validated['status'],
@@ -275,7 +297,7 @@ class MembershipRequestController extends Controller
             'status' => $item->status,
             'member_name' => $item->anggota?->nama ?? $item->user?->name ?? '-',
             'member_code' => $item->anggota?->id_anggota ?? '-',
-            'title' => 'Pembatalan Keanggotaan',
+            'title' => $item->type === 'renewal' ? 'Perpanjangan Membership' : 'Pembatalan Keanggotaan',
             'description' => $item->reason ?? '-',
             'created_at' => $item->created_at,
             'detail_url' => route('membership-requests.show', $item->id),

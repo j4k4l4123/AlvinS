@@ -13,6 +13,11 @@ class LibraryCardController extends Controller
 {
     public function index()
     {
+        LibraryCard::query()
+            ->where('status', 'active')
+            ->whereDate('expiry_date', '<', now()->toDateString())
+            ->update(['status' => 'expired']);
+
         $cards = LibraryCard::with('user', 'anggota')
             ->where('status', '!=', 'cancelled')
             ->latest()

@@ -222,7 +222,7 @@
             <ul class="sidebar-nav" id="sidebarNav">
                 @if($isLibrarian)
                     <li>
-                        <a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'active' : '' }}">
+                        <a href="{{ route('librarian.account.show') }}" class="{{ request()->routeIs('account.show') || request()->routeIs('librarian.account.show') ? 'active' : '' }}">
                             <span class="nav-icon">👤</span> <span class="nav-text">Akun Saya</span>
                         </a>
                     </li>
@@ -263,7 +263,7 @@
                     </li>
                 @elseif($isMember)
                     <li>
-                        <a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'active' : '' }}">
+                        <a href="{{ route('member.account.show') }}" class="{{ request()->routeIs('account.show') || request()->routeIs('member.account.show') ? 'active' : '' }}">
                             <span class="nav-icon">👤</span> <span class="nav-text">Akun Saya</span>
                         </a>
                     </li>
