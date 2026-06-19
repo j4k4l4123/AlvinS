@@ -68,8 +68,8 @@
         <div style="margin-top:20px; padding:16px; border-radius:16px; background:rgba(255,255,255,0.68); border:1px solid rgba(52,211,153,0.18);">
             <div class="text-muted" style="margin-bottom:8px;">Pengaturan Akun</div>
             <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                <a href="{{ route('member.profile.edit') }}" class="btn-action">Edit Profil</a>
-                <a href="{{ route('member.library-card') }}" class="btn-action">Lihat Kartu</a>
+                <a href="{{ route('member.profile.edit') }}" class="btn-submit">Edit Profil</a>
+                <a href="{{ route('member.library-card') }}" class="btn-submit">Lihat Kartu</a>
             </div>
         </div>
     @endif

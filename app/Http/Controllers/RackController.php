@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Rack;
+use App\Models\racks;
 use Illuminate\Http\Request;
 
 class RackController extends Controller
 {
     public function index()
     {
-        $racks = Rack::withCount('books')->latest()->paginate(12);
+        $racks = racks::withCount('buku')->latest()->paginate(12);
 
         return view('racks.index', compact('racks'));
     }
@@ -26,7 +26,7 @@ class RackController extends Controller
             'location_note' => ['nullable', 'string', 'max:255'],
         ]);
 
-        Rack::create([
+        racks::create([
             'name' => 'Rak ' . $validated['code'],
             'code' => $validated['code'],
             'location_note' => $validated['location_note'] ?? null,

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
 {
+    protected $table = 'books';
+
     protected $casts = [
         'reference_only' => 'boolean',
         'price' => 'decimal:2',
@@ -44,34 +46,50 @@ class Book extends Model
         'max_renewals',
     ];
 
-    public function author(): BelongsTo
+    public function penulis(): BelongsTo
     {
-        return $this->belongsTo(Author::class);
+        return $this->belongsTo(authors::class, 'author_id');
     }
 
-    public function category(): BelongsTo
+    public function kategori_relasi(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(categories::class, 'category_id');
     }
 
     public function rack(): BelongsTo
     {
-        return $this->belongsTo(Rack::class);
+        return $this->belongsTo(Racks::class, 'rack_id');
     }
 
-    public function pinjam(): HasMany
+    // Backward compatibility (old name)
+    public function rak(): BelongsTo
     {
-        return $this->hasMany(Pinjam::class);
+        return $this->rack();
+    }
+
+
+
+
+    public function pinjam(): HasMany
+
+    {
+        return $this->hasMany(Pinjam::class, 'book_id');
     }
 
     public function reservations(): HasMany
     {
-        return $this->hasMany(BookReservation::class);
+        return $this->hasMany(BookReservation::class, 'book_id');
     }
+
+    public function reservasi(): HasMany
+    {
+        return $this->reservations();
+    }
+
 
     public function pengembalian(): HasMany
     {
-        return $this->hasMany(Pengembalian::class);
+        return $this->hasMany(Pengembalian::class, 'book_id');
     }
 
     public function activeBorrowingsCount(): int
@@ -101,7 +119,7 @@ class Book extends Model
 
     public function activeReservation(): ?BookReservation
     {
-        return $this->reservations()
+        return $this->reservasi()
             ->whereIn('status', ['pending', 'approved'])
             ->where('expires_at', '>', now())
             ->orderBy('queue_position')
@@ -124,10 +142,22 @@ class Book extends Model
     public function scopeSearch($query, string $keyword)
     {
         return $query->where(function ($q) use ($keyword) {
-            $q->whereRaw('LOWER(judul) LIKE ?', ['%' . strtolower($keyword) . '%'])
-                ->orWhereRaw('LOWER(pengarang) LIKE ?', ['%' . strtolower($keyword) . '%'])
-                ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . strtolower($keyword) . '%'])
-                ->orWhereRaw('CAST(thn_terbit AS CHAR) LIKE ?', ['%' . strtolower($keyword) . '%']);
+            $kw = strtolower((string) $keyword);
+
+            $q->whereRaw('LOWER(judul) LIKE ?', ['%' . $kw . '%'])
+                ->orWhereRaw('LOWER(pengarang) LIKE ?', ['%' . $kw . '%'])
+                ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $kw . '%'])
+                ->orWhereRaw('LOWER(subject) LIKE ?', ['%' . $kw . '%'])
+                ->orWhereRaw('LOWER(id_buku) LIKE ?', ['%' . $kw . '%'])
+                ->orWhereRaw('LOWER(COALESCE(barcode, \'\')) LIKE ?', ['%' . $kw . '%'])
+                ->orWhereRaw('LOWER(COALESCE(isbn, \'\')) LIKE ?', ['%' . $kw . '%']);
+
+            // `thn_terbit` is stored as integer (year).
+            // Add year matching only when keyword contains digits.
+            if (preg_match('/\d+/', (string) $keyword) === 1) {
+                $digits = preg_replace('/\D/', '', (string) $keyword);
+                $q->orWhereRaw('CAST(thn_terbit AS TEXT) LIKE ?', ['%' . $digits . '%']);
+            }
         });
     }
 
@@ -136,7 +166,7 @@ class Book extends Model
         if ($category) {
             return $query->where(function ($q) use ($category) {
                 $q->where('kategori', $category)
-                    ->orWhereHas('category', function ($categoryQuery) use ($category) {
+                    ->orWhereHas('kategori_relasi', function ($categoryQuery) use ($category) {
                         $categoryQuery->where('name', $category);
                     });
             });

@@ -96,14 +96,11 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label for="subject"><span class="label-icon">🧠</span> Subjek</label>
-                <input type="text" id="subject" name="subject" value="{{ old('subject', $book->subject) }}" class="form-input">
-            </div>
-            <div class="form-group">
                 <label for="number_of_pages"><span class="label-icon">📄</span> Number of Page</label>
                 <input type="number" id="number_of_pages" name="number_of_pages" value="{{ old('number_of_pages', $book->number_of_pages) }}" min="1" class="form-input">
             </div>
         </div>
+
 
         <div class="form-row">
             <div class="form-group">

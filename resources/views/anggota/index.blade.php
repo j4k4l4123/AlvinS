@@ -3,8 +3,14 @@
 @section('content')
 <div class="page-header">
     <h1>👥 Daftar Anggota</h1>
-    <a href="{{ route('register') }}" class="btn-add"><span class="icon">+</span> Register Anggota</a>
+    <div class="page-header-actions">
+        <a href="{{ route('anggota.create') }}" class="btn-submit" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
+            <span class="btn-icon">➕</span>
+            Register member
+        </a>
+    </div>
 </div>
+
 
 <div class="search-filter-box">
     <form method="GET" action="{{ route('anggota.index') }}" class="search-form">
@@ -57,8 +63,7 @@
     <div class="empty-state">
         <div class="empty-icon">📭</div>
         <h3>Belum ada anggota</h3>
-        <p class="text-muted">Daftarkan anggota pertama Anda!</p>
-        <a href="{{ route('register') }}" class="btn-add"><span class="icon">+</span> Register Anggota</a>
+        <p class="text-muted">Tambahkan anggota melalui pengelolaan data perpustakaan.</p>
     </div>
 @endif
 

@@ -97,16 +97,13 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label for="subject"><span class="label-icon">🧠</span> Subjek</label>
-                <input type="text" id="subject" name="subject" value="{{ old('subject') }}" placeholder="Subjek buku" class="form-input">
-            </div>
-            <div class="form-group">
                 <label for="number_of_pages"><span class="label-icon">📄</span> Number of Page</label>
                 <input type="number" id="number_of_pages" name="number_of_pages" value="{{ old('number_of_pages') }}" min="1" class="form-input">
             </div>
         </div>
 
         <div class="form-row">
+
             <div class="form-group">
                 <label for="format"><span class="label-icon">📦</span> Format</label>
                 <input type="text" id="format" name="format" value="{{ old('format') }}" placeholder="Contoh: Hardcover" class="form-input">
@@ -139,24 +136,7 @@
             </div>
         </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="copy_status"><span class="label-icon">📦</span> Status Copy</label>
-                <select id="copy_status" name="copy_status" class="form-input">
-                    @foreach(['available' => 'Tersedia', 'borrowed' => 'Dipinjam', 'reserved' => 'Direservasi', 'lost' => 'Hilang', 'damaged' => 'Rusak', 'maintenance' => 'Perawatan'] as $value => $label)
-                        <option value="{{ $value }}" {{ old('copy_status', 'available') == $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="copy_condition"><span class="label-icon">🛠️</span> Kondisi Copy</label>
-                <select id="copy_condition" name="copy_condition" class="form-input">
-                    @foreach(['good' => 'Baik', 'fair' => 'Cukup', 'damaged' => 'Rusak', 'lost' => 'Hilang'] as $value => $label)
-                        <option value="{{ $value }}" {{ old('copy_condition', 'good') == $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
+
 
         <div class="form-group full-width">
             <label for="keterangan"><span class="label-icon">📝</span> Keterangan (Opsional)</label>

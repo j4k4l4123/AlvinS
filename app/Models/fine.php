@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Fine extends Model
 {
+    protected $table = 'fines';
+
     protected $fillable = [
         'pinjam_id',
         'pengembalian_id',
@@ -23,12 +25,12 @@ class Fine extends Model
         'paid_at' => 'datetime',
     ];
 
-    public function borrowing(): BelongsTo
+    public function peminjaman(): BelongsTo
     {
         return $this->belongsTo(Pinjam::class, 'pinjam_id');
     }
 
-    public function returnRecord(): BelongsTo
+    public function rekaman_pengembalian(): BelongsTo
     {
         return $this->belongsTo(Pengembalian::class, 'pengembalian_id');
     }

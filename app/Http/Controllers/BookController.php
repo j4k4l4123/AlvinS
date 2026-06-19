@@ -6,7 +6,7 @@ use App\Http\Requests\BookRequest;
 use App\Models\Book;
 use App\Models\BookReservation;
 use App\Models\Catalog;
-use App\Models\Rack;
+use App\Models\racks;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
 
@@ -27,15 +27,30 @@ class BookController extends Controller
             'subject' => $request->get('subject'),
             'author' => $request->get('author'),
             'availability' => $request->get('availability'),
-        ])->with(['pinjam' => function ($q) {
+            'from_year' => $request->get('from_year'),
+            'to_year' => $request->get('to_year'),
+        ])->when($request->filled('subject_exact'), function ($q) use ($request) {
+            // subject_exact: filter tambahan khusus untuk librarian untuk menghindari input ganda
+            $q->where('subject', $request->get('subject_exact'));
+        })->with(['pinjam' => function ($q) {
             $q->where('status', 'dipinjam');
         }]);
 
-        $allowedSorts = ['judul', 'pengarang', 'kategori', 'thn_terbit', 'created_at', 'stock'];
-        $sort = $request->get('sort', 'judul');
-        $order = strtolower((string) $request->get('order', 'asc')) === 'desc' ? 'desc' : 'asc';
-        if (! in_array($sort, $allowedSorts, true)) {
-            $sort = 'judul';
+        // Handle release_sort shortcut (overrides sort/order)
+        $releaseSortValue = $request->get('release_sort');
+        if ($releaseSortValue === 'newest') {
+            $sort = 'thn_terbit';
+            $order = 'desc';
+        } elseif ($releaseSortValue === 'oldest') {
+            $sort = 'thn_terbit';
+            $order = 'asc';
+        } else {
+            $allowedSorts = ['judul', 'pengarang', 'kategori', 'thn_terbit', 'created_at', 'stock'];
+            $sort = $request->get('sort', 'judul');
+            $order = strtolower((string) $request->get('order', 'asc')) === 'desc' ? 'desc' : 'asc';
+            if (! in_array($sort, $allowedSorts, true)) {
+                $sort = 'judul';
+            }
         }
         $query->orderBy($sort, $order);
 
@@ -54,7 +69,7 @@ class BookController extends Controller
         }
 
         $nextIdBuku = 'BKU' . str_pad($next, 3, '0', STR_PAD_LEFT);
-        $racks = Rack::orderBy('name')->get();
+        $racks = racks::orderBy('name')->get();
 
         return view('books.create', compact('nextIdBuku', 'racks'));
     }
@@ -74,14 +89,14 @@ class BookController extends Controller
     {
         $book = Book::with(['pinjam' => function ($query) {
             $query->where('status', 'dipinjam');
-        }, 'rack', 'reservations.anggota'])->findOrFail($id);
+        }, 'rak', 'reservasi.anggota'])->findOrFail($id);
         return view('books.show', compact('book'));
     }
 
     public function edit($id)
     {
         $book = Book::findOrFail($id);
-        $racks = Rack::orderBy('name')->get();
+        $racks = racks::orderBy('name')->get();
         return view('books.edit', compact('book', 'racks'));
     }
 

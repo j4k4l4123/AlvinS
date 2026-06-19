@@ -37,6 +37,14 @@ class Catalog
             }
         }
 
+        if (! empty($filters['from_year'])) {
+            $query->where('thn_terbit', '>=', (int) $filters['from_year']);
+        }
+
+        if (! empty($filters['to_year'])) {
+            $query->where('thn_terbit', '<=', (int) $filters['to_year']);
+        }
+
         return $query;
     }
 }

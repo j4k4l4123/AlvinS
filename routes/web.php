@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AnggotaController;
+use App\Http\Controllers\VigenereController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+
 use App\Http\Controllers\Auth\LoginPostController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FineController;
+use App\Http\Controllers\LibrarianRegistrationRequestController;
 use App\Http\Controllers\LibraryCardController;
 use App\Http\Controllers\MemberBorrowingController;
 use App\Http\Controllers\MemberController;
@@ -23,7 +26,6 @@ use App\Http\Controllers\RenewalRequestController;
 use App\Http\Controllers\ReservationApprovalController;
 use App\Http\Middleware\LibrarianMiddleware;
 use App\Http\Middleware\MemberMiddleware;
-use App\Http\Middleware\RoleBasedRedirect;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['guest'])->group(function () {
@@ -40,18 +42,11 @@ Route::middleware(['guest'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [PageController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', [PageController::class, 'dashboard'])
-        ->name('dashboard')
-        ->middleware(RoleBasedRedirect::class);
-    Route::get('/account', function () {
-        $user = auth()->user();
-
-        if ($user?->isLibrarian()) {
-            return redirect()->route('librarian.account.show');
-        }
-
-        return redirect()->route('member.account.show');
-    })->name('account.show');
+    Route::get('/dashboard', function () {
+        return auth()->user()?->isLibrarian()
+            ? redirect()->route('librarian.dashboard')
+            : redirect()->route('member.dashboard');
+    })->name('dashboard');
 });
 
 Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
@@ -70,7 +65,7 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.destroy');
 
     Route::get('/anggota', [AnggotaController::class, 'index'])->name('anggota.index');
-    Route::redirect('/anggota/create', '/login')->name('anggota.create');
+    Route::get('/anggota/create', [AnggotaController::class, 'create'])->name('anggota.create');
     Route::post('/anggota', [AnggotaController::class, 'store'])->name('anggota.store');
     Route::get('/anggota/{id}', [AnggotaController::class, 'show'])->name('anggota.show');
     Route::get('/anggota/{id}/edit', [AnggotaController::class, 'edit'])->name('anggota.edit');
@@ -108,12 +103,18 @@ Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->gr
     Route::get('/membership-requests/reservasi/{reservation}', [MembershipRequestController::class, 'reservationsShow'])->name('membership-requests.reservations.show');
     Route::get('/membership-requests/pembatalan', [MembershipRequestController::class, 'cancellations'])->name('membership-requests.cancellations');
     Route::get('/membership-requests/perpanjangan', [MembershipRequestController::class, 'renewals'])->name('membership-requests.renewals');
+    Route::get('/membership-requests/renewal-requests', [RenewalRequestController::class, 'index'])->name('renewal-requests.index');
+    Route::get('/membership-requests/librarian', [LibrarianRegistrationRequestController::class, 'index'])->name('librarian-registration-requests.index');
     Route::get('/membership-requests/perpanjangan/{renewalRequest}', [MembershipRequestController::class, 'renewalsShow'])->name('membership-requests.renewals.show');
     Route::get('/membership-requests/{id}', [MembershipRequestController::class, 'show'])->name('membership-requests.show');
     Route::put('/membership-requests/{id}', [MembershipRequestController::class, 'update'])->name('membership-requests.update');
     Route::put('/renewal-requests/{renewalRequest}', [RenewalRequestController::class, 'update'])->name('renewal-requests.update');
     Route::put('/reservations/{reservation}', [ReservationApprovalController::class, 'update'])->name('reservations.update');
 });
+
+Route::get('/vigenere', [VigenereController::class, 'index'])->name('vigenere.index');
+Route::post('/vigenere/encrypt', [VigenereController::class, 'encrypt'])->name('vigenere.encrypt');
+Route::post('/vigenere/decrypt', [VigenereController::class, 'decrypt'])->name('vigenere.decrypt');
 
 Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(function () {
     Route::get('/dashboard', [MemberController::class, 'dashboard'])->name('member.dashboard');
@@ -138,5 +139,3 @@ Route::prefix('member')->middleware(['auth', MemberMiddleware::class])->group(fu
     Route::post('/membership-renewals', [MembershipExtensionController::class, 'store'])->name('membership-renewals.store');
     Route::delete('/membership-requests/pending', [MembershipRequestController::class, 'cancelOwnPending'])->name('membership-requests.cancel-own');
 });
-
-Route::get('/test', [PageController::class, 'test']);

@@ -54,6 +54,24 @@
             <textarea id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat lengkap" required class="form-input textarea">{{ old('alamat') }}</textarea>
         </div>
 
+        <div class="form-row">
+            <div class="form-group">
+                <label for="email"><span class="label-icon">📧</span> Email</label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="contoh@email.com" required class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label for="password"><span class="label-icon">🔐</span> Password</label>
+                <input type="password" id="password" name="password" placeholder="Minimal 8 karakter" required class="form-input">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="password_confirmation"><span class="label-icon">🔁</span> Konfirmasi Password</label>
+            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ulangi password" required class="form-input">
+        </div>
+
+
         <div class="form-actions">
             <a href="{{ route('anggota.index') }}" class="btn-cancel">❌ Batal</a>
             <button type="submit" class="btn-submit">

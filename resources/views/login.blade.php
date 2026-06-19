@@ -94,13 +94,6 @@
                 <button type="submit" class="btn">Continue</button>
             </form>
 
-            @if (Route::has('register'))
-                <div class="register-wrap">
-                    Belum punya akun?
-                    <a href="{{ route('register') }}" class="register-link">Daftar sekarang</a>
-                </div>
-            @endif
-
             <div class="extra">Gunakan akun yang sudah terdaftar untuk masuk ke dashboard. Jika password baru saja direset, silakan login dengan password terbaru.</div>
         </div>
     </div>

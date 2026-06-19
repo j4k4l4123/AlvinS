@@ -233,15 +233,12 @@ class MembershipRequestController extends Controller
             $membershipRequest->notes = $validated['notes'] ?? null;
             $membershipRequest->save();
 
-            $memberProfile = $membershipRequest->user?->memberProfile;
+            $user = $membershipRequest->user;
+            $memberProfile = $user?->memberProfile;
             $anggota = $membershipRequest->anggota;
 
-            if (! $memberProfile || ! $anggota) {
-                return;
-            }
-
             if ($membershipRequest->type === 'renewal') {
-                if ($validated['status'] === 'approved') {
+                if ($validated['status'] === 'approved' && $anggota) {
                     $libraryCard = $anggota->libraryCard;
                     if ($libraryCard) {
                         $baseDate = $libraryCard->expiry_date && $libraryCard->expiry_date->isFuture()
@@ -254,14 +251,25 @@ class MembershipRequestController extends Controller
                         ]);
                     }
 
-                    $memberProfile->update(['membership_status' => 'active']);
+                    $memberProfile?->update(['membership_status' => 'active']);
                 }
             } elseif ($validated['status'] === 'approved') {
-                $memberProfile->update(['membership_status' => 'cancelled']);
-                $anggota->libraryCard()?->delete();
-                $membershipRequest->user?->delete();
+                // Pembatalan disetujui: hapus data anggota sampai hilang dari database.
+                // Urutan dibuat agar relasi tidak meninggalkan data yatim.
+
+                // Hapus library card milik anggota
+                $anggota?->libraryCard()?->delete();
+
+                // Hapus data anggota
+                $anggota?->delete();
+
+                // Hapus profil anggota
+                $memberProfile?->delete();
+
+                // Hapus akun user (soft delete karena model User pakai SoftDeletes)
+                $user?->delete();
             } else {
-                $memberProfile->update(['membership_status' => 'active']);
+                $memberProfile?->update(['membership_status' => 'active']);
             }
 
             if ($membershipRequest->user_id) {

@@ -6,7 +6,7 @@
 <div class="page-header">
     <div>
         <h1>📝 Pengajuan</h1>
-        <p class="text-muted">Pusat semua pengajuan member dan akses librarian.</p>
+        <p class="text-muted">Pusat semua pengajuan member.</p>
     </div>
 </div>
 
@@ -22,10 +22,6 @@
     <a href="{{ route('membership-requests.cancellations') }}" class="content-card" style="padding:20px; text-decoration:none; color:inherit; border:1px solid rgba(52,211,153,0.18);">
         <h3 style="margin:0 0 8px; color:var(--pu-forest);">❌ Pembatalan Keanggotaan</h3>
         <p class="text-muted" style="margin:0;">Tinjau permintaan pembatalan keanggotaan.</p>
-    </a>
-    <a href="{{ route('membership-requests.librarian-registrations') }}" class="content-card" style="padding:20px; text-decoration:none; color:inherit; border:1px solid rgba(52,211,153,0.18);">
-        <h3 style="margin:0 0 8px; color:var(--pu-forest);">🛡️ Pengajuan Librarian</h3>
-        <p class="text-muted" style="margin:0;">Setujui atau tolak akses librarian.</p>
     </a>
 </div>
 

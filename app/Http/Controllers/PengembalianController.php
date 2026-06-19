@@ -30,9 +30,11 @@ class PengembalianController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->whereHas('book', function ($qb) use ($search) {
-                    $qb->whereRaw('LOWER(judul) LIKE ?', ['%' . $search . '%']);
+                    $qb->whereRaw('LOWER(judul) LIKE ?', ['%' . $search . '%'])
+                        ->orWhereRaw('LOWER(id_buku) LIKE ?', ['%' . $search . '%']);
                 })->orWhereHas('anggota', function ($qa) use ($search) {
-                    $qa->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%']);
+                    $qa->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%'])
+                        ->orWhereRaw('LOWER(id_anggota) LIKE ?', ['%' . $search . '%']);
                 });
             });
         }

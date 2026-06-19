@@ -64,14 +64,6 @@
         </div>
     </a>
 
-    <a href="{{ route('librarian-registration-requests.index') }}" class="item-card">
-        <div class="tilt-layer">
-            <div class="item-body">
-                <h3 class="item-title">Librarian Requests</h3>
-                <p class="item-detail">Review librarian access</p>
-            </div>
-        </div>
-    </a>
 </div>
 
 <div class="items-grid" style="margin-bottom: 30px;">

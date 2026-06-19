@@ -19,6 +19,13 @@ class AnggotaRequest extends FormRequest
             'alamat'       => ['required', 'string'],
             'no_tlp'       => ['required', 'string', 'max:20'],
             'tanggal_daftar' => ['required', 'date'],
+
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            // Catatan: validasi unique ini bergantung pada record di tabel users.
+            // Pastikan saat delete anggota, record user terkait juga ikut terhapus.
+
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
+
 }

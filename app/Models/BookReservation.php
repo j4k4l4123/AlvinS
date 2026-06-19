@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BookReservation extends Model
 {
+    protected $table = 'book_reservations';
+
     protected $fillable = [
         'user_id',
         'anggota_id',
@@ -32,9 +34,9 @@ class BookReservation extends Model
         return $this->belongsTo(Anggota::class);
     }
 
-    public function book(): BelongsTo
+    public function buku(): BelongsTo
     {
-        return $this->belongsTo(Book::class);
+        return $this->belongsTo(Book::class, 'book_id');
     }
 
     public function isActive(): bool
