@@ -2,20 +2,46 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Query\Builder;
 
 class Catalog
 {
     public function search(?string $keyword = null, array $filters = []): Builder
     {
-        $query = Book::query()->with(['rack', 'reservations.anggota']);
+        $query = DB::table('books')
+            ->leftJoin('racks', 'books.rack_id', '=', 'racks.id')
+            ->select('books.*', 'racks.name as rack_name', 'racks.code as rack_code');
 
         if ($keyword) {
-            $query->search($keyword);
+            $query->where(function ($q) use ($keyword) {
+                $kw = strtolower((string) $keyword);
+                $q->whereRaw('LOWER(judul) LIKE ?', ['%' . $kw . '%'])
+                  ->orWhereRaw('LOWER(pengarang) LIKE ?', ['%' . $kw . '%'])
+                  ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $kw . '%'])
+                  ->orWhereRaw('LOWER(subject) LIKE ?', ['%' . $kw . '%'])
+                  ->orWhereRaw('LOWER(id_buku) LIKE ?', ['%' . $kw . '%'])
+                  ->orWhereRaw('LOWER(COALESCE(barcode, \'\')) LIKE ?', ['%' . $kw . '%'])
+                  ->orWhereRaw('LOWER(COALESCE(isbn, \'\')) LIKE ?', ['%' . $kw . '%']);
+
+                if (preg_match('/\d+/', (string) $keyword) === 1) {
+                    $digits = preg_replace('/\D/', '', (string) $keyword);
+                    $q->orWhereRaw('CAST(thn_terbit AS TEXT) LIKE ?', ['%' . $digits . '%']);
+                }
+            });
         }
 
         if (! empty($filters['kategori'])) {
-            $query->filterByCategory($filters['kategori']);
+            $category = $filters['kategori'];
+            $query->where(function ($q) use ($category) {
+                $q->where('kategori', $category)
+                  ->orWhereExists(function ($sub) use ($category) {
+                      $sub->select(DB::raw(1))
+                          ->from('categories')
+                          ->whereColumn('categories.id', 'books.category_id')
+                          ->where('categories.name', $category);
+                  });
+            });
         }
 
         if (! empty($filters['subject'])) {
