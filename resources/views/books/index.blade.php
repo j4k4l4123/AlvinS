@@ -320,16 +320,16 @@
                             <span class="status-badge">{{ $book->kategori }}</span>
                             <span class="item-id">#{{ $book->id_buku }}</span>
                         </div>
-                        @php($activeReservation = $book->activeReservation())
+                        @php($activeReservation = \App\Models\Book::activeReservationFor($book))
                         <div class="item-status-row" style="padding: 10px 22px 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                             @if($book->reference_only)
                                 <span class="status-badge status-borrowed">📘 Reference Only</span>
                             @elseif($book->copy_status === 'available')
-                                <span class="status-badge status-available">✅ {{ $book->copyStatusLabel() }}</span>
+                                <span class="status-badge status-available">✅ {{ \App\Models\Book::copyStatusLabel($book) }}</span>
                             @elseif($book->copy_status === 'reserved')
-                                <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 {{ $book->copyStatusLabel() }}</span>
+                                <span class="status-badge" style="background:#fef3c7; color:#92400e;">📌 {{ \App\Models\Book::copyStatusLabel($book) }}</span>
                             @else
-                                <span class="status-badge status-borrowed">⏳ {{ $book->copyStatusLabel() }}</span>
+                                <span class="status-badge status-borrowed">⏳ {{ \App\Models\Book::copyStatusLabel($book) }}</span>
                             @endif
 
                             @unless($isMemberView)
@@ -354,9 +354,9 @@
                     </div>
                 </a>
 
-                @if($isMemberView && $book->isReservable())
+                @if($isMemberView && \App\Models\Book::isReservable($book))
                     <div style="padding: 0 22px 22px;">
-                        <form method="POST" action="{{ route('member.books.reserve', $book) }}" style="margin-top:12px;">
+                        <form method="POST" action="{{ route('member.books.reserve', $book->id) }}" style="margin-top:12px;">
                             @csrf
                             <button type="submit" class="btn-member-borrow">Reservasi</button>
                         </form>

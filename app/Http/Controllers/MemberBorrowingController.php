@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
-use App\Models\BookReservation;
-use App\Models\Pinjam;
-use App\Models\RenewalRequest;
 use App\Support\NotificationHelper;
 use App\Services\BorrowingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MemberBorrowingController extends Controller
@@ -18,30 +15,62 @@ class MemberBorrowingController extends Controller
     {
         $user = $request->user();
         $anggota = $user?->anggota;
-        $libraryCard = $anggota?->libraryCard;
+        
+        $libraryCard = $anggota
+            ? DB::table('library_cards')->where('anggota_id', $anggota->id)->first()
+            : null;
 
         $activeBorrowings = $anggota
-            ? Pinjam::with(['book', 'fine'])
-                ->where('anggota_id', $anggota->id)
-                ->where('status', 'dipinjam')
-                ->latest()
-                ->paginate(10)
+            ? DB::table('pinjam')
+                ->leftJoin('books', 'pinjam.book_id', '=', 'books.id')
+                ->leftJoin('fines', 'fines.pinjam_id', '=', 'pinjam.id')
+                ->where('pinjam.anggota_id', $anggota->id)
+                ->where('pinjam.status', 'dipinjam')
+                ->orderByDesc('pinjam.created_at')
+                ->select(
+                    'pinjam.*', 
+                    'books.judul as book_judul', 
+                    'fines.amount as fine_amount', 
+                    'fines.status as fine_status'
+                )
+                ->paginate(10, ['*'], 'borrow_page')
             : collect();
 
+        if ($activeBorrowings instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator) {
+            $activeBorrowings->getCollection()->transform(function ($item) {
+                $item->book = (object) ['judul' => $item->book_judul ?? '-'];
+                $item->fine = ($item->fine_amount !== null)
+                    ? (object) ['amount' => $item->fine_amount, 'status' => $item->fine_status]
+                    : null;
+                $item->tanggal_pinjam = $item->tanggal_pinjam ? \Carbon\Carbon::parse($item->tanggal_pinjam) : null;
+                $item->tanggal_kembali = $item->tanggal_kembali ? \Carbon\Carbon::parse($item->tanggal_kembali) : null;
+                return $item;
+            });
+        }
+
         $pendingRenewals = $anggota
-            ? RenewalRequest::where('anggota_id', $anggota->id)
+            ? DB::table('renewal_requests')
+                ->where('anggota_id', $anggota->id)
                 ->where('status', 'pending')
                 ->pluck('notes', 'pinjam_id')
             : collect();
 
         $activeReservations = $anggota
-            ? BookReservation::with('book')
-                ->where('anggota_id', $anggota->id)
-                ->whereIn('status', ['pending', 'approved'])
-                ->where('expires_at', '>', now())
-                ->latest()
+            ? DB::table('book_reservations')
+                ->leftJoin('books', 'book_reservations.book_id', '=', 'books.id')
+                ->where('book_reservations.anggota_id', $anggota->id)
+                ->whereIn('book_reservations.status', ['pending', 'approved'])
+                ->where('book_reservations.expires_at', '>', now())
+                ->orderByDesc('book_reservations.created_at')
+                ->select('book_reservations.*', 'books.judul as book_judul')
                 ->get()
             : collect();
+
+        $activeReservations->transform(function ($item) {
+            $item->book = (object) ['judul' => $item->book_judul ?? '-'];
+            $item->expires_at = $item->expires_at ? \Carbon\Carbon::parse($item->expires_at) : null;
+            return $item;
+        });
 
         return view('member.borrowings', compact('activeBorrowings', 'libraryCard', 'pendingRenewals', 'activeReservations'));
     }
@@ -55,17 +84,20 @@ class MemberBorrowingController extends Controller
 
         try {
             $pinjam = $borrowingService->borrowByBarcodes($validated['card_number'], $validated['book_barcode']);
-            $pinjam->load('book.rack');
+            
+            // Fetch book details from DB
+            $book = DB::table('books')->where('id', $pinjam->book_id)->first();
+            $rack = $book?->rack_id ? DB::table('racks')->where('id', $book->rack_id)->first() : null;
 
-            $rackMessage = $pinjam->book?->rack?->name
-                ? ' Rak buku: ' . $pinjam->book->rack->name . '.'
+            $rackMessage = $rack?->name
+                ? ' Rak buku: ' . $rack->name . '.'
                 : '';
 
             NotificationHelper::send(
                 $request->user()->id,
                 'borrowing_created',
                 'Peminjaman berhasil dibuat',
-                'Buku "' . ($pinjam->book?->judul ?? '-') . '" berhasil dipinjam.' . $rackMessage,
+                'Buku "' . ($book?->judul ?? '-') . '" berhasil dipinjam.' . $rackMessage,
                 ['pinjam_id' => $pinjam->id]
             );
 
@@ -75,12 +107,17 @@ class MemberBorrowingController extends Controller
         }
     }
 
-    public function renew(Request $request, Pinjam $pinjam): RedirectResponse
+    public function renew(Request $request, $pinjamId): RedirectResponse
     {
-        abort_if($pinjam->anggota?->user_id !== $request->user()?->id, 403);
+        $pinjam = DB::table('pinjam')->where('id', $pinjamId)->first();
+        abort_if(! $pinjam, 404);
+
+        $anggota = DB::table('anggota')->where('id', $pinjam->anggota_id)->first();
+        abort_if(! $anggota || $anggota->user_id !== $request->user()?->id, 403);
         abort_if($pinjam->status !== 'dipinjam', 422, 'Peminjaman ini tidak aktif.');
 
-        $exists = RenewalRequest::where('anggota_id', $pinjam->anggota_id)
+        $exists = DB::table('renewal_requests')
+            ->where('anggota_id', $pinjam->anggota_id)
             ->where('status', 'pending')
             ->where('pinjam_id', $pinjam->id)
             ->exists();
@@ -89,29 +126,36 @@ class MemberBorrowingController extends Controller
             return back()->with('error', 'Permintaan perpanjangan untuk buku ini sudah menunggu persetujuan pustakawan.');
         }
 
-        $renewal = RenewalRequest::create([
+        $book = DB::table('books')->where('id', $pinjam->book_id)->first();
+
+        $renewalId = DB::table('renewal_requests')->insertGetId([
             'user_id' => $request->user()->id,
             'anggota_id' => $pinjam->anggota_id,
             'pinjam_id' => $pinjam->id,
             'status' => 'pending',
-            'notes' => 'Permintaan perpanjangan untuk buku: ' . ($pinjam->book?->judul ?? '-'),
+            'notes' => 'Permintaan perpanjangan untuk buku: ' . ($book?->judul ?? '-'),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         NotificationHelper::send(
             $request->user()->id,
             'renewal_request_created',
             'Permintaan perpanjangan dikirim',
-            'Permintaan perpanjangan untuk buku "' . ($pinjam->book?->judul ?? '-') . '" berhasil dikirim ke librarian.',
-            ['renewal_request_id' => $renewal->id]
+            'Permintaan perpanjangan untuk buku "' . ($book?->judul ?? '-') . '" berhasil dikirim ke librarian.',
+            ['renewal_request_id' => $renewalId]
         );
 
         return back()->with('success', 'Permintaan perpanjangan berhasil dikirim ke librarian untuk disetujui.');
     }
 
-    public function reserve(Request $request, Book $book, BorrowingService $borrowingService): RedirectResponse
+    public function reserve(Request $request, $bookId, BorrowingService $borrowingService): RedirectResponse
     {
         $anggota = $request->user()?->anggota;
         abort_unless($anggota, 403);
+
+        $book = DB::table('books')->where('id', $bookId)->first();
+        abort_if(! $book, 404);
 
         try {
             $reservation = $borrowingService->reserve($anggota->id, $book->id, $request->user()->id);
@@ -130,13 +174,17 @@ class MemberBorrowingController extends Controller
         return back()->with('success', 'Reservasi berhasil diajukan dan sedang menunggu persetujuan librarian.');
     }
 
-    public function cancelReservation(Request $request, BookReservation $reservation): RedirectResponse
+    public function cancelReservation(Request $request, $reservationId): RedirectResponse
     {
+        $reservation = DB::table('book_reservations')->where('id', $reservationId)->first();
+        abort_if(! $reservation, 404);
         abort_if($reservation->user_id !== $request->user()?->id, 403);
         abort_if(! in_array($reservation->status, ['pending', 'approved'], true), 422, 'Reservasi ini tidak bisa dibatalkan.');
 
-        $title = $reservation->book?->judul ?? '-';
-        $reservation->delete();
+        $book = DB::table('books')->where('id', $reservation->book_id)->first();
+        $title = $book?->judul ?? '-';
+
+        DB::table('book_reservations')->where('id', $reservationId)->delete();
 
         NotificationHelper::send(
             $request->user()->id,

@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\LibraryCard\LibraryCard;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
 
 class User extends Authenticatable
 {
@@ -34,43 +32,23 @@ class User extends Authenticatable
         ];
     }
 
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'role_user');
-    }
-
-    public function memberProfile(): HasOne
-    {
-        return $this->hasOne(MemberProfile::class);
-    }
-
-    public function anggota(): HasOne
-    {
-        return $this->hasOne(Anggota::class);
-    }
-
-    public function libraryCards(): HasMany
-    {
-        return $this->hasMany(LibraryCard::class);
-    }
-
-    public function membershipRequests(): HasMany
-    {
-        return $this->hasMany(MembershipRequest::class);
-    }
-
-    public function librarianRegistrationRequests(): HasMany
-    {
-        return $this->hasMany(LibrarianRegistrationRequest::class);
-    }
-
     public function hasRole(Role|string $role): bool
     {
-        if (is_string($role)) {
-            return $this->roles()->where('name', $role)->exists();
+        $userId = $this->id;
+        if ($userId === null) {
+            return false;
         }
 
-        return $this->roles()->where('id', $role->id)->exists();
+        if (is_string($role)) {
+            $roleRow = Role::findByName($role);
+            if ($roleRow === null) {
+                return false;
+            }
+
+            return Role::userIdsForRole($roleRow)->contains((string) $userId) || Role::userIdsForRole($roleRow)->contains((int) $userId);
+        }
+
+        return Role::userIdsForRole($role)->contains((string) $userId) || Role::userIdsForRole($role)->contains((int) $userId);
     }
 
     public function hasAnyRole(array|string $roles): bool
@@ -102,4 +80,60 @@ class User extends Authenticatable
     {
         return $this->hasRole(Role::MEMBER);
     }
+
+    public function getMemberProfileAttribute()
+    {
+        $row = \Illuminate\Support\Facades\DB::table('member_profiles')
+            ->where('user_id', $this->id)
+            ->first();
+
+        if ($row) {
+            if (isset($row->tanggal_daftar) && is_string($row->tanggal_daftar)) {
+                $row->tanggal_daftar = \Carbon\Carbon::parse($row->tanggal_daftar);
+            }
+            if (isset($row->created_at) && is_string($row->created_at)) {
+                $row->created_at = \Carbon\Carbon::parse($row->created_at);
+            }
+            if (isset($row->updated_at) && is_string($row->updated_at)) {
+                $row->updated_at = \Carbon\Carbon::parse($row->updated_at);
+            }
+        }
+
+        return $row;
+    }
+
+    public function getAnggotaAttribute()
+    {
+        $row = \Illuminate\Support\Facades\DB::table('anggota')
+            ->where('user_id', $this->id)
+            ->first();
+
+        if ($row) {
+            if (isset($row->created_at)) {
+                $row->created_at = \Carbon\Carbon::parse($row->created_at);
+            }
+            if (isset($row->updated_at)) {
+                $row->updated_at = \Carbon\Carbon::parse($row->updated_at);
+            }
+            if (isset($row->tanggal_daftar)) {
+                $row->tanggal_daftar = \Carbon\Carbon::parse($row->tanggal_daftar);
+            }
+        }
+
+        return $row;
+    }
+
+    public function roles()
+    {
+        return \Illuminate\Support\Facades\DB::table('roles')
+            ->join('role_user', 'roles.id', '=', 'role_user.role_id')
+            ->where('role_user.user_id', $this->id)
+            ->select('roles.*');
+    }
+
+    public function getRolesAttribute()
+    {
+        return $this->roles()->get();
+    }
 }
+

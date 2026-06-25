@@ -47,14 +47,14 @@
 
     @if($renewalRequest->status === 'pending')
         <div style="margin-top:20px; display:grid; gap:14px;">
-            <form method="POST" action="{{ route('renewal-requests.update', $renewalRequest) }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <form method="POST" action="{{ route('renewal-requests.update', $renewalRequest->id) }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="status" value="approved">
                 <button type="submit" class="btn-submit">✅ Setujui Perpanjangan</button>
             </form>
 
-            <form method="POST" action="{{ route('renewal-requests.update', $renewalRequest) }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <form method="POST" action="{{ route('renewal-requests.update', $renewalRequest->id) }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="status" value="rejected">

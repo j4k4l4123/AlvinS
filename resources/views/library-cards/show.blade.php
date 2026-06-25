@@ -65,7 +65,7 @@
         </div>
         <div class="meta-box">
             <div style="font-size:12px; opacity:0.8; text-transform:uppercase;">Card Status</div>
-            <div style="font-size:18px; font-weight:600; margin-top:4px;">{{ $card->isActive() ? 'Active' : 'Inactive / Expired' }}</div>
+            <div style="font-size:18px; font-weight:600; margin-top:4px;">{{ \App\Models\LibraryCard\LibraryCard::isActive($card) ? 'Active' : 'Inactive / Expired' }}</div>
         </div>
     </div>
 

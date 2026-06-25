@@ -27,7 +27,7 @@
             </div>
             <div class="detail-item">
                 <span class="detail-label">Terdaftar Sejak</span>
-                <span class="detail-value">{{ $anggota->created_at->format('d-m-Y H:i') }}</span>
+                <span class="detail-value">{{ \Carbon\Carbon::parse($anggota->created_at)->format('d-m-Y H:i') }}</span>
             </div>
         </div>
 

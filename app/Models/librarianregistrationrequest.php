@@ -2,31 +2,44 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
-class LibrarianRegistrationRequest extends Model
+
+class LibrarianRegistrationRequest
 {
-    protected $fillable = [
-        'user_id',
-        'status',
-        'reason',
-        'processed_by',
-        'processed_at',
-        'notes',
-    ];
+    protected const TABLE = 'librarian_registration_requests';
 
-    protected $casts = [
-        'processed_at' => 'datetime',
-    ];
-
-    public function user(): BelongsTo
+    public static function find(int|string $id): ?object
     {
-        return $this->belongsTo(User::class);
+        return DB::table(static::TABLE)->where('id', $id)->first();
     }
 
-    public function processedBy(): BelongsTo
+    public static function userFor(object|array $request): ?object
     {
-        return $this->belongsTo(User::class, 'processed_by');
+        $userId = is_array($request) ? ($request['user_id'] ?? null) : ($request->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
+    }
+
+    public static function processedByFor(object|array $request): ?object
+    {
+        $processedById = is_array($request)
+            ? ($request['processed_by'] ?? null)
+            : ($request->processed_by ?? null);
+
+        if ($processedById === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $processedById)->first();
+    }
+
+    public static function all(): \Illuminate\Support\Collection
+    {
+        return DB::table(static::TABLE)->get();
     }
 }
+

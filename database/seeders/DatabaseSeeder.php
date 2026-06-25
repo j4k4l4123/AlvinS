@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,9 +24,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $librarianRole = Role::where('name', 'librarian')->first();
+        $librarianRole = Role::findByName('librarian');
         if ($librarianRole) {
-            $user->roles()->syncWithoutDetaching([$librarianRole->id]);
+            DB::table('role_user')->updateOrInsert([
+                'user_id' => $user->id,
+                'role_id' => $librarianRole->id,
+            ]);
         }
     }
 }

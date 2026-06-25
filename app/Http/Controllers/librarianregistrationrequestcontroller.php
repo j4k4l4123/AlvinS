@@ -83,8 +83,13 @@ class LibrarianRegistrationRequestController extends Controller
             ]);
 
             if ($validated['status'] === 'approved') {
-                $role = Role::where('name', 'librarian')->firstOrFail();
-                $librarianRegistrationRequest->user->roles()->syncWithoutDetaching([$role->id]);
+                $role = Role::findByName('librarian');
+                if ($role) {
+                    DB::table('role_user')->updateOrInsert([
+                        'user_id' => $librarianRegistrationRequest->user_id,
+                        'role_id' => $role->id,
+                    ]);
+                }
             }
 
             SystemNotification::create([

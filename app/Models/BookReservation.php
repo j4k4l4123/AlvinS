@@ -2,50 +2,93 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
-class BookReservation extends Model
+/**
+ * Query-Builder based implementation for book reservations.
+ *
+ * Note: This file intentionally does NOT use Eloquent ORM.
+ */
+class BookReservation
 {
-    protected $table = 'book_reservations';
+    protected const TABLE = 'book_reservations';
 
-    protected $fillable = [
-        'user_id',
-        'anggota_id',
-        'book_id',
-        'queue_position',
-        'status',
-        'approved_at',
-        'expires_at',
-    ];
-
-    protected $casts = [
-        'approved_at' => 'datetime',
-        'expires_at' => 'datetime',
-    ];
-
-    public function user(): BelongsTo
+    public static function find(int|string $id): ?object
     {
-        return $this->belongsTo(User::class);
+        return DB::table(static::TABLE)->where('id', $id)->first();
     }
 
-    public function anggota(): BelongsTo
+    /**
+     * Mirrors previous model logic (casts + relationships removed).
+     */
+    public static function isActive(object|array $reservation): bool
     {
-        return $this->belongsTo(Anggota::class);
+        $status = is_array($reservation) ? ($reservation['status'] ?? null) : ($reservation->status ?? null);
+        $expiresAt = is_array($reservation) ? ($reservation['expires_at'] ?? null) : ($reservation->expires_at ?? null);
+
+        if (!in_array($status, ['pending', 'approved'], true)) {
+            return false;
+        }
+
+        if ($expiresAt === null || $expiresAt === '') {
+            return false;
+        }
+
+        try {
+            return (new \DateTime($expiresAt)) > new \DateTime('now');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
-    public function buku(): BelongsTo
+    public static function isApproved(object|array $reservation): bool
     {
-        return $this->belongsTo(Book::class, 'book_id');
+        $status = is_array($reservation) ? ($reservation['status'] ?? null) : ($reservation->status ?? null);
+        $expiresAt = is_array($reservation) ? ($reservation['expires_at'] ?? null) : ($reservation->expires_at ?? null);
+
+        if ($status !== 'approved') {
+            return false;
+        }
+
+        if ($expiresAt === null || $expiresAt === '') {
+            return false;
+        }
+
+        try {
+            return (new \DateTime($expiresAt)) > new \DateTime('now');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
-    public function isActive(): bool
+    public static function userFor(object|array $reservation): ?object
     {
-        return in_array($this->status, ['pending', 'approved'], true) && $this->expires_at && $this->expires_at->isFuture();
+        $userId = is_array($reservation) ? ($reservation['user_id'] ?? null) : ($reservation->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
     }
 
-    public function isApproved(): bool
+    public static function anggotaFor(object|array $reservation): ?object
     {
-        return $this->status === 'approved' && $this->expires_at && $this->expires_at->isFuture();
+        $anggotaId = is_array($reservation) ? ($reservation['anggota_id'] ?? null) : ($reservation->anggota_id ?? null);
+        if ($anggotaId === null) {
+            return null;
+        }
+
+        return DB::table('anggota')->where('id', $anggotaId)->first();
+    }
+
+    public static function bukuFor(object|array $reservation): ?object
+    {
+        $bookId = is_array($reservation) ? ($reservation['book_id'] ?? null) : ($reservation->book_id ?? null);
+        if ($bookId === null) {
+            return null;
+        }
+
+        return DB::table('books')->where('id', $bookId)->first();
     }
 }
+

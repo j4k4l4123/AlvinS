@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MemberProfileUpdateRequest;
+use Illuminate\Support\Facades\DB;
 
 class MemberProfileController extends Controller
 {
@@ -21,23 +22,27 @@ class MemberProfileController extends Controller
         $anggota = $user?->anggota;
         $validated = $request->validated();
 
-        $user->update([
-            'name' => $validated['name'],
-        ]);
+        if ($user) {
+            DB::table('users')->where('id', $user->id)->update([
+                'name' => $validated['name'],
+            ]);
+        }
 
         if ($profile) {
-            $profile->update([
+            DB::table('member_profiles')->where('id', $profile->id)->update([
                 'nama' => $validated['name'],
                 'alamat' => $validated['alamat'],
                 'no_tlp' => $validated['no_tlp'],
+                'updated_at' => now(),
             ]);
         }
 
         if ($anggota) {
-            $anggota->update([
+            DB::table('anggota')->where('id', $anggota->id)->update([
                 'nama' => $validated['name'],
                 'alamat' => $validated['alamat'],
                 'no_tlp' => $validated['no_tlp'],
+                'updated_at' => now(),
             ]);
         }
 

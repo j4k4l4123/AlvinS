@@ -2,38 +2,38 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
-class MemberProfile extends Model
+
+class MemberProfile
 {
-    protected $fillable = [
-        'user_id',
-        'id_anggota',
-        'nama',
-        'alamat',
-        'no_tlp',
-        'tanggal_daftar',
-        'membership_status',
-    ];
+    protected const TABLE = 'member_profiles';
 
-    protected $casts = [
-        'tanggal_daftar' => 'date',
-        'membership_status' => 'string',
-    ];
-
-    public function user(): BelongsTo
+    public static function find(int|string $id): ?object
     {
-        return $this->belongsTo(User::class);
+        return DB::table(static::TABLE)->where('id', $id)->first();
     }
 
-    public function isBanned(): bool
+    public static function userFor(object|array $profile): ?object
     {
-        return ($this->membership_status ?? 'active') === 'banned';
+        $userId = is_array($profile) ? ($profile['user_id'] ?? null) : ($profile->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
     }
 
-    public function isExpired(): bool
+    public static function isBanned(object|array $profile): bool
     {
-        return ($this->membership_status ?? 'active') === 'expired';
+        $status = is_array($profile) ? ($profile['membership_status'] ?? 'active') : ($profile->membership_status ?? 'active');
+        return $status === 'banned';
+    }
+
+    public static function isExpired(object|array $profile): bool
+    {
+        $status = is_array($profile) ? ($profile['membership_status'] ?? 'active') : ($profile->membership_status ?? 'active');
+        return $status === 'expired';
     }
 }
+

@@ -2,33 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
-class Pengguna extends Model
+
+class Pengguna
 {
-    use HasFactory;
+    protected const TABLE = 'pengguna';
 
-    protected $table = 'pengguna';
-
-    protected $fillable = [
-        'nama',
-        'email',
-        'password',
-        'telepon',
-        'alamat',
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    protected function casts(): array
+    public static function find(int|string $id): ?object
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return DB::table(static::TABLE)->where('id', $id)->first();
+    }
+
+    public static function findByEmail(string $email): ?object
+    {
+        return DB::table(static::TABLE)->where('email', $email)->first();
     }
 }
+

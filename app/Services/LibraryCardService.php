@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\LibraryCard;
+use Illuminate\Support\Facades\DB;
 
 class LibraryCardService
 {
@@ -14,7 +14,7 @@ class LibraryCardService
     public function generateSequentialCardNumber(?int $sequence = null): string
     {
         if ($sequence === null) {
-            $lastCardNumber = LibraryCard::query()
+            $lastCardNumber = DB::table('library_cards')
                 ->where('card_number', 'like', 'MEM-%')
                 ->orderByDesc('id')
                 ->value('card_number');

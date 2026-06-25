@@ -15,14 +15,32 @@ class AnggotaController extends Controller
 {
     public function index(Request $request)
     {
-        $anggotaQuery = Anggota::query();
+        $search = $request->filled('search') ? (string) $request->search : null;
 
-        if ($request->filled('search')) {
-            $anggotaQuery->search($request->search);
-        }
+        $anggota = $search
+            ? Anggota::search($search)
+            : \Illuminate\Support\Facades\DB::table('anggota')->get();
 
-        $anggota = $anggotaQuery->paginate(10)->withQueryString();
-        return view('anggota.index', compact('anggota'));
+        // Ensure we always have a Collection (not Eloquent/array), so paginator math works.
+        $anggota = $anggota instanceof \Illuminate\Support\Collection ? $anggota : collect($anggota);
+
+        $page = max((int) $request->get('page', 1), 1);
+        $perPage = 10;
+        $total = $anggota->count();
+
+        $pagedItems = $anggota
+            ->forPage($page, $perPage)
+            ->values();
+
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pagedItems,
+            $total,
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Support\Facades\Route::currentRouteName(), 'query' => $request->query()]
+        );
+
+        return view('anggota.index', ['anggota' => $paginator->setPageName('page')]);
     }
 
     public function create()
@@ -30,88 +48,153 @@ class AnggotaController extends Controller
         return view('anggota.create');
     }
 
-    public function store(AnggotaRequest $request)
-    {
-        $validated = $request->validated();
+ public function store(AnggotaRequest $request)
+{
+    $validated = $request->validated();
 
-        // Generate sequential ID if not provided
-        if (empty($validated['id_anggota'])) {
-            $maxId = Anggota::max('id');
-            $validated['id_anggota'] = 'AGT-' . str_pad(((int)$maxId) + 1, 5, '0', STR_PAD_LEFT);
-        }
-
-        $userData = [
-            'name' => $validated['nama'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ];
-
-        $user = User::create($userData);
-
-        $memberRole = Role::where('name', Role::MEMBER)->first();
-        if ($memberRole) {
-            $user->roles()->syncWithoutDetaching([$memberRole->id]);
-        }
-
-        $anggotaData = $validated;
-        unset($anggotaData['email'], $anggotaData['password'], $anggotaData['password_confirmation']);
-
-        $anggotaData['user_id'] = $user->id;
-        $anggota = Anggota::create($anggotaData);
-
-        MemberProfile::create([
-            'user_id' => $user->id,
-            'id_anggota' => $anggota->id_anggota,
-            'nama' => $anggota->nama,
-            'alamat' => $anggota->alamat,
-            'no_tlp' => $anggota->no_tlp,
-            'tanggal_daftar' => $anggota->tanggal_daftar,
-            'membership_status' => 'active',
-        ]);
-
-        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil ditambahkan!');
+    // Generate sequential ID if not provided
+    if (empty($validated['id_anggota'])) {
+        $maxId = \Illuminate\Support\Facades\DB::table('anggota')->max('id');
+        $validated['id_anggota'] = 'AGT-' . str_pad(((int) $maxId) + 1, 5, '0', STR_PAD_LEFT);
     }
+
+    // Create user
+    $user = User::create([
+        'name' => $validated['nama'],
+        'email' => $validated['email'],
+        'password' => Hash::make($validated['password']),
+    ]);
+
+    // Assign member role
+    $memberRole = Role::findByName(Role::MEMBER);
+
+    if ($memberRole) {
+        $exists = \Illuminate\Support\Facades\DB::table('role_user')
+            ->where('user_id', $user->id)
+            ->where('role_id', $memberRole->id)
+            ->exists();
+
+        if (! $exists) {
+            \Illuminate\Support\Facades\DB::table('role_user')->insert([
+                'user_id' => $user->id,
+                'role_id' => $memberRole->id,
+            ]);
+        }
+    }
+
+    // Prepare anggota data
+    $anggotaData = $validated;
+
+    unset(
+        $anggotaData['email'],
+        $anggotaData['password'],
+        $anggotaData['password_confirmation']
+    );
+
+    $anggotaData['user_id'] = $user->id;
+
+    // Insert anggota
+    $anggotaId = \Illuminate\Support\Facades\DB::table('anggota')
+        ->insertGetId($anggotaData);
+
+    $anggotaRow = \Illuminate\Support\Facades\DB::table('anggota')
+        ->where('id', $anggotaId)
+        ->first();
+
+    // Insert member profile
+    \Illuminate\Support\Facades\DB::table('member_profiles')->insert([
+        'user_id' => $user->id,
+        'id_anggota' => $anggotaRow->id_anggota,
+        'nama' => $anggotaRow->nama,
+        'alamat' => $anggotaRow->alamat,
+        'no_tlp' => $anggotaRow->no_tlp,
+        'tanggal_daftar' => $anggotaRow->tanggal_daftar,
+        'membership_status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return redirect()
+        ->route('anggota.index')
+        ->with('success', 'Anggota berhasil ditambahkan!');
+}
 
 
     public function show($id)
     {
-        $anggota = Anggota::with(['pinjam', 'pengembalian', 'user'])->findOrFail($id);
-        return view('anggota.show', compact('anggota'));
+        $anggota = Anggota::find($id);
+        if (!$anggota) {
+            abort(404);
+        }
+
+        $anggota->user = Anggota::userFor($anggota);
+
+        return view('anggota.show', ['anggota' => $anggota]);
     }
 
 
     public function edit($id)
     {
-        $anggota = Anggota::findOrFail($id);
-        return view('anggota.edit', compact('anggota'));
+        $anggota = Anggota::find($id);
+        if (!$anggota) {
+            abort(404);
+        }
+
+        return view('anggota.edit', ['anggota' => $anggota]);
     }
 
     public function update(AnggotaRequest $request, $id)
     {
-        $anggota = Anggota::findOrFail($id);
-        $anggota->update($request->validated());
+        $validated = $request->validated();
+
+        $anggota = Anggota::find($id);
+        if (!$anggota) {
+            abort(404);
+        }
+
+        $oldIdAnggota = $anggota->id_anggota;
+
+        \Illuminate\Support\Facades\DB::table('anggota')->where('id', $id)->update($validated);
+
+        // Also update name in users and details in member_profiles
+        $user = Anggota::userFor($anggota);
+        if ($user && isset($validated['nama'])) {
+            \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->update([
+                'name' => $validated['nama'],
+                'updated_at' => now(),
+            ]);
+        }
+
+        \Illuminate\Support\Facades\DB::table('member_profiles')->where('id_anggota', $oldIdAnggota)->update([
+            'id_anggota' => $validated['id_anggota'],
+            'nama' => $validated['nama'],
+            'alamat' => $validated['alamat'],
+            'no_tlp' => $validated['no_tlp'],
+            'updated_at' => now(),
+        ]);
+
         return redirect()->route('anggota.index')->with('success', 'Anggota berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
-        $anggota = Anggota::with('user')->findOrFail($id);
+        $anggota = Anggota::find($id);
+        if (!$anggota) {
+            abort(404);
+        }
 
-        // Pastikan record user terkait ikut terhapus agar email tidak dianggap masih dipakai.
-        // Pakai forceDelete agar pasti hilang dari tabel users jika model memakai soft delete.
-        if ($anggota->user) {
-            if (method_exists($anggota->user, 'forceDelete')) {
-                $anggota->user->forceDelete();
+        $user = Anggota::userFor($anggota);
+
+        // Delete user first (same logic as old code).
+        if ($user) {
+            if (method_exists($user, 'forceDelete')) {
+                $user->forceDelete();
             } else {
-                $anggota->user->delete();
+                $user->delete();
             }
         }
 
-        if (method_exists($anggota, 'forceDelete')) {
-            $anggota->forceDelete();
-        } else {
-            $anggota->delete();
-        }
+        \Illuminate\Support\Facades\DB::table('anggota')->where('id', $id)->delete();
 
         return redirect()->route('anggota.index')->with('success', 'Anggota berhasil dihapus!');
     }

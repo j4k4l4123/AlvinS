@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Fine;
 use App\Models\Pengembalian;
 use App\Models\Pinjam;
+use App\Models\Anggota;
+use App\Models\Book;
 use App\Support\NotificationHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,35 +21,48 @@ class FineService
     public const LOST_BOOK_MULTIPLIER = 1;
     public const DAMAGED_BOOK_PERCENTAGE = 0.3;
 
-    public function calculateFine(string $tanggalKembali, string $tanggalDikembalikan, ?Pinjam $pinjam = null): int
+    public function calculateFine(string $tanggalKembali, string $tanggalDikembalikan, ?object $pinjam = null): int
     {
         $dueDate = Carbon::parse($tanggalKembali)->startOfDay();
         $returnDate = Carbon::parse($tanggalDikembalikan)->startOfDay();
 
         $daysLate = max(0, $dueDate->diffInDays($returnDate, false));
-        $dailyRate = (int) round((float) ($pinjam?->book?->daily_late_fee ?? self::FINE_PER_DAY));
+        
+        $book = $pinjam ? Book::find($pinjam->book_id) : null;
+        $dailyRate = (int) round((float) ($book?->daily_late_fee ?? self::FINE_PER_DAY));
 
         return (int) ($daysLate * $dailyRate);
     }
 
-    public function calculateLostBookFine(Pinjam $pinjam): int
+    public function calculateLostBookFine(object $pinjam): int
     {
-        return (int) round((float) ($pinjam->book?->price ?? 0) * self::LOST_BOOK_MULTIPLIER);
+        $book = Book::find($pinjam->book_id);
+        return (int) round((float) ($book?->price ?? 0) * self::LOST_BOOK_MULTIPLIER);
     }
 
-    public function calculateDamagedBookFine(Pinjam $pinjam): int
+    public function calculateDamagedBookFine(object $pinjam): int
     {
-        return (int) round((float) ($pinjam->book?->price ?? 0) * self::DAMAGED_BOOK_PERCENTAGE);
+        $book = Book::find($pinjam->book_id);
+        return (int) round((float) ($book?->price ?? 0) * self::DAMAGED_BOOK_PERCENTAGE);
     }
 
-    public function processReturn(int $pinjamId, string $tanggalDikembalikan): Pengembalian
+    public function processReturn(int $pinjamId, string $tanggalDikembalikan): object
     {
         return DB::transaction(function () use ($pinjamId, $tanggalDikembalikan) {
-            $pinjam = Pinjam::with(['book', 'anggota.user'])->findOrFail($pinjamId);
+            $pinjam = DB::table('pinjam')->where('id', $pinjamId)->first();
+            if (!$pinjam) {
+                throw new \Exception('Peminjaman tidak ditemukan.');
+            }
+
+            $pinjam->book = Book::find($pinjam->book_id);
+            $pinjam->anggota = Anggota::find($pinjam->anggota_id);
+            if ($pinjam->anggota) {
+                $pinjam->anggota->user = Anggota::userFor($pinjam->anggota);
+            }
 
             $denda = $this->calculateFine((string) $pinjam->tanggal_kembali, $tanggalDikembalikan, $pinjam);
 
-            $pengembalian = Pengembalian::create([
+            $pengembalianId = DB::table('pengembalian')->insertGetId([
                 'pinjam_id' => $pinjam->id,
                 'anggota_id' => $pinjam->anggota_id,
                 'book_id' => $pinjam->book_id,
@@ -55,27 +70,52 @@ class FineService
                 'tanggal_kembali' => $pinjam->tanggal_kembali,
                 'tanggal_dikembalikan' => $tanggalDikembalikan,
                 'denda' => $denda,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            $pinjam->update(['status' => 'dikembalikan']);
+            $pengembalian = DB::table('pengembalian')->where('id', $pengembalianId)->first();
+
+            DB::table('pinjam')->where('id', $pinjam->id)->update([
+                'status' => 'dikembalikan',
+                'updated_at' => now(),
+            ]);
+
             if ($pinjam->book) {
-                $this->inventoryService->refreshBookStatus($pinjam->book->fresh());
+                $freshBook = DB::table('books')->where('id', $pinjam->book->id)->first();
+                if ($freshBook) {
+                    $this->inventoryService->refreshBookStatus($freshBook);
+                }
             }
 
             if ($denda > 0) {
-                Fine::updateOrCreate(
-                    ['pinjam_id' => $pinjam->id],
-                    [
+                $fineExists = DB::table('fines')->where('pinjam_id', $pinjam->id)->exists();
+                if ($fineExists) {
+                    DB::table('fines')->where('pinjam_id', $pinjam->id)->update([
                         'pengembalian_id' => $pengembalian->id,
                         'anggota_id' => $pinjam->anggota_id,
                         'amount' => $denda,
                         'type' => 'late',
                         'status' => 'unpaid',
                         'notes' => 'Denda otomatis karena terlambat mengembalikan buku.',
-                    ]
-                );
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    DB::table('fines')->insert([
+                        'pinjam_id' => $pinjam->id,
+                        'pengembalian_id' => $pengembalian->id,
+                        'anggota_id' => $pinjam->anggota_id,
+                        'amount' => $denda,
+                        'type' => 'late',
+                        'status' => 'unpaid',
+                        'notes' => 'Denda otomatis karena terlambat mengembalikan buku.',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             } else {
-                Fine::where('pinjam_id', $pinjam->id)
+                DB::table('fines')
+                    ->where('pinjam_id', $pinjam->id)
                     ->where('type', 'late')
                     ->delete();
             }
@@ -103,35 +143,45 @@ class FineService
         });
     }
 
-    public function markFineAsPaid(Pinjam $pinjam): void
+    public function markFineAsPaid(object $pinjam): void
     {
-        $pinjam->fine()?->update([
-            'status' => 'paid',
-            'paid_at' => now(),
-        ]);
+        DB::table('fines')
+            ->where('pinjam_id', $pinjam->id)
+            ->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+                'updated_at' => now(),
+            ]);
     }
 
     public function getTotalFines(int $anggotaId): int
     {
-        return Fine::where('anggota_id', $anggotaId)
+        return (int) DB::table('fines')
+            ->where('anggota_id', $anggotaId)
             ->where('status', 'unpaid')
             ->sum('amount');
     }
 
     public function getOverdueFinesSummary()
     {
-        return Pinjam::with(['anggota', 'book'])
+        $borrowings = DB::table('pinjam')
             ->where('status', 'dipinjam')
             ->whereDate('tanggal_kembali', '<', Carbon::today())
-            ->get()
-            ->map(function ($pinjam) {
-                $daysLate = max(0, Carbon::parse($pinjam->tanggal_kembali)->diffInDays(Carbon::today(), false));
+            ->get();
 
-                return [
-                    'pinjam' => $pinjam,
-                    'days_late' => $daysLate,
-                    'fine' => $daysLate * (int) round((float) ($pinjam->book?->daily_late_fee ?? self::FINE_PER_DAY)),
-                ];
-            });
+        foreach ($borrowings as $pinjam) {
+            $pinjam->anggota = Anggota::find($pinjam->anggota_id);
+            $pinjam->book = Book::find($pinjam->book_id);
+        }
+
+        return $borrowings->map(function ($pinjam) {
+            $daysLate = max(0, Carbon::parse($pinjam->tanggal_kembali)->diffInDays(Carbon::today(), false));
+
+            return [
+                'pinjam' => $pinjam,
+                'days_late' => $daysLate,
+                'fine' => $daysLate * (int) round((float) ($pinjam->book?->daily_late_fee ?? self::FINE_PER_DAY)),
+            ];
+        });
     }
 }

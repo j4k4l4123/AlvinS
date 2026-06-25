@@ -29,7 +29,7 @@
                     <div class="item-body">
                         <h3 class="item-title">Nomor Rak {{ $rack->code }}</h3>
                         <p class="item-detail">📍 {{ $rack->location_note ?: 'Lokasi belum diisi' }}</p>
-                        <p class="item-detail">📚 Total stok buku: {{ $rack->totalBooks() }}</p>
+                        <p class="item-detail">📚 Total stok buku: {{ $rack->total_stock }}</p>
                     </div>
                 </div>
             </div>

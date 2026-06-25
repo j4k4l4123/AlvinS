@@ -32,10 +32,17 @@ class AppServiceProvider extends ServiceProvider
             $navbarNotifications = collect();
 
             if ($user) {
-                $navbarNotifications = SystemNotification::where('user_id', $user->id)
-                    ->latest()
-                    ->take(5)
+                $navbarNotifications = \Illuminate\Support\Facades\DB::table('notifications')
+                    ->where('user_id', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
                     ->get();
+
+                foreach ($navbarNotifications as $item) {
+                    if (isset($item->created_at)) {
+                        $item->created_at = \Carbon\Carbon::parse($item->created_at);
+                    }
+                }
             }
 
             $view->with('navbarNotifications', $navbarNotifications);

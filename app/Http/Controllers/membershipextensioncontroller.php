@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MembershipRequest;
 use App\Support\NotificationHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MembershipExtensionController extends Controller
 {
@@ -17,26 +17,33 @@ class MembershipExtensionController extends Controller
 
         $user = $request->user();
         $anggota = $user?->anggota;
-        $libraryCard = $anggota?->libraryCard;
+        
+        $libraryCard = $anggota
+            ? DB::table('library_cards')->where('anggota_id', $anggota->id)->first()
+            : null;
 
         abort_unless($user && $anggota && $libraryCard, 403);
 
-        $existingPending = MembershipRequest::where('user_id', $user->id)
+        $existingPending = DB::table('membership_requests')
+            ->where('user_id', $user->id)
             ->where('anggota_id', $anggota->id)
             ->where('type', 'renewal')
             ->where('status', 'pending')
+            ->whereNull('deleted_at')
             ->exists();
 
         if ($existingPending) {
             return back()->with('error', 'Permintaan perpanjangan membership masih menunggu persetujuan librarian.');
         }
 
-        MembershipRequest::create([
+        DB::table('membership_requests')->insert([
             'user_id' => $user->id,
             'anggota_id' => $anggota->id,
             'type' => 'renewal',
             'status' => 'pending',
             'reason' => $validated['reason'] ?? 'Permintaan perpanjangan membership.',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         NotificationHelper::send(

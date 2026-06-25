@@ -47,7 +47,7 @@
 
     @if($librarianRegistrationRequest->status === 'pending')
         <div style="display:grid; gap:14px; margin-top:22px;">
-            <form method="POST" action="{{ route('librarian-registration-requests.update', $librarianRegistrationRequest) }}" class="styled-form">
+            <form method="POST" action="{{ route('librarian-registration-requests.update', $librarianRegistrationRequest->id) }}" class="styled-form">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="status" value="approved">
@@ -56,7 +56,7 @@
                 </div>
             </form>
 
-            <form method="POST" action="{{ route('librarian-registration-requests.update', $librarianRegistrationRequest) }}" class="styled-form">
+            <form method="POST" action="{{ route('librarian-registration-requests.update', $librarianRegistrationRequest->id) }}" class="styled-form">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="status" value="rejected">

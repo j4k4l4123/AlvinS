@@ -30,7 +30,7 @@
                             <td>{{ $fine->created_at?->format('d/m/Y H:i') }}</td>
                             <td>
                                 @if($fine->status === 'unpaid')
-                                    <form method="POST" action="{{ route('member.fines.pay', $fine) }}">
+                                    <form method="POST" action="{{ route('member.fines.pay', $fine->id) }}">
                                         @csrf
                                         @method('PUT')
                                         <button type="submit" class="btn-action">Bayar / Tandai Lunas</button>

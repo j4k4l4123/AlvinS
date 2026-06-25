@@ -2,42 +2,89 @@
 
 namespace App\Models\LibraryCard;
 
-use App\Models\Anggota;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
-class LibraryCard extends Model
+/**
+ * Query-Builder based implementation for library cards.
+ *
+ * Note: This file intentionally does NOT use Eloquent ORM.
+ */
+class LibraryCard
 {
-    protected $fillable = [
-        'user_id',
-        'anggota_id',
-        'card_number',
-        'status',
-        'issued_date',
-        'expiry_date',
-    ];
+    protected const TABLE = 'library_cards';
 
-    protected $casts = [
-        'issued_date' => 'date',
-        'expiry_date' => 'date',
-    ];
-
-    public function user(): BelongsTo
+    /**
+     * Find a single card by primary key.
+     */
+    public static function find(int|string $id): ?object
     {
-        return $this->belongsTo(User::class);
+        return DB::table(static::TABLE)->where('id', $id)->first();
     }
 
-    public function anggota(): BelongsTo
+    /**
+     * Get a card by card_number.
+     */
+    public static function findByCardNumber(string $cardNumber): ?object
     {
-        return $this->belongsTo(Anggota::class);
+        return DB::table(static::TABLE)
+            ->where('card_number', $cardNumber)
+            ->first();
     }
 
-    public function isActive(): bool
+    /**
+     * Determine whether a given card row is active.
+     *
+     * Active rule (mirrors previous model logic):
+     * - status === 'active'
+     * - expiry_date is not null and is in the future
+     */
+    public static function isActive(object|array $card): bool
     {
-        return $this->status === 'active'
-            && $this->expiry_date !== null
-            && $this->expiry_date->isFuture();
+        $status = is_array($card) ? ($card['status'] ?? null) : ($card->status ?? null);
+        $expiry = is_array($card) ? ($card['expiry_date'] ?? null) : ($card->expiry_date ?? null);
+
+        if ($status !== 'active' || $expiry === null) {
+            return false;
+        }
+
+        // Let PHP compare using DateTime; avoids ORM casts.
+        try {
+            $expiryDate = new \DateTime($expiry);
+            return $expiryDate > new \DateTime('now');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public static function active(): \Illuminate\Support\Collection
+    {
+        return DB::table(static::TABLE)
+            ->where('status', 'active')
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>', DB::raw('NOW()'))
+            ->get();
+    }
+
+ 
+    public static function userFor(object|array $card): ?object
+    {
+        $userId = is_array($card) ? ($card['user_id'] ?? null) : ($card->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
+    }
+
+
+    public static function anggotaFor(object|array $card): ?object
+    {
+        $anggotaId = is_array($card) ? ($card['anggota_id'] ?? null) : ($card->anggota_id ?? null);
+        if ($anggotaId === null) {
+            return null;
+        }
+
+        return DB::table('anggotas')->where('id', $anggotaId)->first();
     }
 }
 

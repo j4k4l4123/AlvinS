@@ -41,7 +41,7 @@
                 <div class="tilt-layer">
                     <div class="item-header">
                         <span class="status-badge">{{ $a->id_anggota }}</span>
-                        <span class="item-id">{{ $a->tanggal_daftar ? $a->tanggal_daftar->format('d-m-Y') : '-' }}</span>
+                      {{ $a->tanggal_daftar ? \Carbon\Carbon::parse($a->tanggal_daftar)->format('d-m-Y') : '-' }}
                     </div>
 
                     <div class="item-body">

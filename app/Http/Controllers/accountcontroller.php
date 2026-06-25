@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Anggota;
-use App\Models\Pinjam;
 use App\Services\FineService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
@@ -16,13 +15,17 @@ class AccountController extends Controller
         $anggota = $user?->anggota;
 
         if (! $anggota && $profile?->id_anggota) {
-            $anggota = Anggota::where('id_anggota', $profile->id_anggota)->first();
+            $anggota = DB::table('anggota')->where('id_anggota', $profile->id_anggota)->first();
         }
 
-        $libraryCard = $anggota?->libraryCard;
+        $libraryCard = $anggota
+            ? DB::table('library_cards')->where('anggota_id', $anggota->id)->first()
+            : null;
+            
         $activeBorrowingsCount = $anggota
-            ? Pinjam::where('anggota_id', $anggota->id)->where('status', 'dipinjam')->count()
+            ? DB::table('pinjam')->where('anggota_id', $anggota->id)->where('status', 'dipinjam')->count()
             : 0;
+            
         $totalFines = $anggota ? $fineService->getTotalFines($anggota->id) : 0;
 
         return view('account.show', compact(

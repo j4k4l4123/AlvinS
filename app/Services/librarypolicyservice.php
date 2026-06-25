@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Anggota;
 use App\Models\Book;
 use App\Models\Pinjam;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class LibraryPolicyService
@@ -12,7 +13,7 @@ class LibraryPolicyService
     public const MAX_BORROWINGS = 5;
     public const MAX_PENDING_RESERVATIONS = 3;
 
-    public function assertCanBorrow(Anggota $anggota, Book $book): void
+    public function assertCanBorrow(object $anggota, object $book): void
     {
         if ($book->reference_only) {
             throw new Exception('Buku ini hanya untuk referensi dan tidak bisa dipinjam.');
@@ -22,15 +23,15 @@ class LibraryPolicyService
             throw new Exception('Buku ini sedang tidak tersedia karena status copy: ' . $book->copy_status . '.');
         }
 
-        if (! $book->isAvailable()) {
+        if (! Book::isAvailable($book)) {
             throw new Exception('Stok buku sedang tidak tersedia.');
         }
 
-        if ($anggota->activeBorrowings()->count() >= self::MAX_BORROWINGS) {
+        if (DB::table('pinjam')->where('anggota_id', $anggota->id)->where('status', 'dipinjam')->count() >= self::MAX_BORROWINGS) {
             throw new Exception('Anggota sudah mencapai batas maksimal peminjaman.');
         }
 
-        $hasOverdue = Pinjam::where('anggota_id', $anggota->id)
+        $hasOverdue = DB::table('pinjam')->where('anggota_id', $anggota->id)
             ->where('status', 'dipinjam')
             ->whereDate('tanggal_kembali', '<', now()->toDateString())
             ->exists();
@@ -39,30 +40,33 @@ class LibraryPolicyService
             throw new Exception('Anggota masih memiliki peminjaman yang terlambat.');
         }
 
-        $unpaidFines = $anggota->pengembalian()->whereHas('fine', function ($query) {
-            $query->where('status', 'unpaid');
-        })->exists();
+        $unpaidFines = DB::table('fines')
+            ->where('anggota_id', $anggota->id)
+            ->where('status', 'unpaid')
+            ->exists();
 
         if ($unpaidFines) {
             throw new Exception('Anggota masih memiliki denda yang belum dibayar.');
         }
 
-        if ($anggota->libraryCard && ! $anggota->libraryCard->isActive()) {
+        $libraryCard = Anggota::libraryCardFor($anggota);
+        if ($libraryCard && !\App\Models\LibraryCard\LibraryCard::isActive($libraryCard)) {
             throw new Exception('Kartu anggota tidak aktif atau sudah kedaluwarsa.');
         }
     }
 
-    public function assertCanReserve(Anggota $anggota, Book $book): void
+    public function assertCanReserve(object $anggota, object $book): void
     {
         if ($book->reference_only) {
             throw new Exception('Buku ini hanya untuk referensi dan tidak bisa direservasi.');
         }
 
-        if ($book->canBeBorrowed()) {
+        if (Book::canBeBorrowed($book)) {
             throw new Exception('Buku ini masih tersedia untuk dipinjam langsung, jadi reservasi belum diperlukan.');
         }
 
-        $pendingReservations = $anggota->reservations()
+        $pendingReservations = DB::table('book_reservations')
+            ->where('anggota_id', $anggota->id)
             ->whereIn('status', ['pending', 'approved'])
             ->where('expires_at', '>', now())
             ->count();
@@ -72,22 +76,25 @@ class LibraryPolicyService
         }
     }
 
-    public function assertCanRenew(Pinjam $pinjam): void
+    public function assertCanRenew(object $pinjam): void
     {
         if ($pinjam->status !== 'dipinjam') {
             throw new Exception('Peminjaman ini tidak aktif.');
         }
 
-        if ($pinjam->isOverdue()) {
+        if (Pinjam::isOverdue($pinjam)) {
             throw new Exception('Buku yang terlambat tidak bisa diperpanjang.');
         }
 
-        if (($pinjam->renewal_count ?? 0) >= ($pinjam->book?->max_renewals ?? 1)) {
+        $book = Book::find($pinjam->book_id);
+        $maxRenewals = $book?->max_renewals ?? 1;
+
+        if (($pinjam->renewal_count ?? 0) >= $maxRenewals) {
             throw new Exception('Batas maksimal perpanjangan sudah tercapai.');
         }
     }
 
-    public function assertCanMarkLostOrDamaged(Pinjam $pinjam): void
+    public function assertCanMarkLostOrDamaged(object $pinjam): void
     {
         if ($pinjam->status !== 'dipinjam') {
             throw new Exception('Hanya peminjaman aktif yang bisa ditandai hilang atau rusak.');

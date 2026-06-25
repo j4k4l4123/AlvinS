@@ -2,41 +2,52 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
-class MembershipRequest extends Model
+
+class MembershipRequest
 {
-    use SoftDeletes;
+    protected const TABLE = 'membership_requests';
 
-    protected $fillable = [
-        'user_id',
-        'anggota_id',
-        'type',
-        'status',
-        'reason',
-        'processed_at',
-        'processed_by',
-        'notes',
-    ];
-
-    protected $casts = [
-        'processed_at' => 'datetime',
-    ];
-
-    public function user(): BelongsTo
+    public static function find(int|string $id): ?object
     {
-        return $this->belongsTo(User::class);
+        return DB::table(static::TABLE)
+            ->where('id', $id)
+            ->whereNull('deleted_at')
+            ->first();
     }
 
-    public function anggota(): BelongsTo
+    public static function userFor(object|array $request): ?object
     {
-        return $this->belongsTo(Anggota::class);
+        $userId = is_array($request) ? ($request['user_id'] ?? null) : ($request->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
     }
 
-    public function processedBy(): BelongsTo
+    public static function anggotaFor(object|array $request): ?object
     {
-        return $this->belongsTo(User::class, 'processed_by');
+        $anggotaId = is_array($request) ? ($request['anggota_id'] ?? null) : ($request->anggota_id ?? null);
+        if ($anggotaId === null) {
+            return null;
+        }
+
+        return DB::table('anggota')->where('id', $anggotaId)->first();
+    }
+
+    public static function processedByFor(object|array $request): ?object
+    {
+        $processedById = is_array($request)
+            ? ($request['processed_by'] ?? null)
+            : ($request->processed_by ?? null);
+
+        if ($processedById === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $processedById)->first();
     }
 }
+

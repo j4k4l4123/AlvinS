@@ -2,34 +2,46 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
-class racks extends Model
+
+class racks
 {
-    protected $table = 'racks';
+    protected const TABLE = 'racks';
 
-    protected $fillable = [
-        'name',
-        'code',
-        'location_note',
-        'capacity',
-    ];
-
-    public function buku(): HasMany
+    public static function find(int|string $id): ?object
     {
-        return $this->hasMany(Book::class, 'rack_id');
+        return DB::table(static::TABLE)->where('id', $id)->first();
     }
 
-    public function totalBuku(): int
+    public static function bukuFor(object|array $rack): \Illuminate\Support\Collection
     {
-        return (int) $this->buku()->sum('stock');
+        $rackId = is_array($rack) ? ($rack['id'] ?? null) : ($rack->id ?? null);
+        if ($rackId === null) {
+            return collect();
+        }
+
+        return DB::table('books')
+            ->where('rack_id', $rackId)
+            ->get();
+    }
+
+    public static function totalBukuFor(object|array $rack): int
+    {
+        $rackId = is_array($rack) ? ($rack['id'] ?? null) : ($rack->id ?? null);
+        if ($rackId === null) {
+            return 0;
+        }
+
+        return (int) DB::table('books')
+            ->where('rack_id', $rackId)
+            ->sum('stock');
     }
 
     // Backward compatibility (views may call totalBooks())
-    public function totalBooks(): int
+    public static function totalBooksFor(object|array $rack): int
     {
-        return $this->totalBuku();
+        return static::totalBukuFor($rack);
     }
-
 }
+

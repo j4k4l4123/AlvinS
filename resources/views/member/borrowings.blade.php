@@ -57,7 +57,7 @@
                         </div>
                         <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end;">
                             <span class="status-badge" style="background:#fef3c7; color:#92400e;">{{ $reservation->status === 'approved' ? 'Disetujui' : 'Menunggu Approval' }} sampai {{ $reservation->expires_at?->format('d/m/Y H:i') }}</span>
-                            <form method="POST" action="{{ route('member.reservations.cancel', $reservation) }}">
+                            <form method="POST" action="{{ route('member.reservations.cancel', $reservation->id) }}">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-cancel">Batalkan Reservasi</button>
@@ -91,8 +91,8 @@
                             <div class="text-muted">Barcode Buku: <strong>{{ $borrowing->book?->id_buku ?? '-' }}</strong></div>
                         </div>
                         <div>
-                            @if($borrowing->isOverdue())
-                                <span class="status-badge status-borrowed">Overdue {{ $borrowing->daysOverdue() }} hari</span>
+                            @if(\App\Models\Pinjam::isOverdue($borrowing))
+                                <span class="status-badge status-borrowed">Overdue {{ \App\Models\Pinjam::daysOverdue($borrowing) }} hari</span>
                             @else
                                 <span class="status-badge status-available">Aktif</span>
                             @endif
@@ -116,7 +116,7 @@
 
                     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
                         @if(! $pendingRenewals->has((string) $borrowing->id))
-                            <form method="POST" action="{{ route('member.borrowings.renew', $borrowing) }}">
+                            <form method="POST" action="{{ route('member.borrowings.renew', $borrowing->id) }}">
                                 @csrf
                                 @method('PUT')
                                 <button type="submit" class="btn-action btn-edit">Ajukan Perpanjangan</button>

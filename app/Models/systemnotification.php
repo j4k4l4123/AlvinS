@@ -2,29 +2,55 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
-class SystemNotification extends Model
+
+class SystemNotification
 {
-    protected $table = 'notifications';
+    protected const TABLE = 'notifications';
 
-    protected $fillable = [
-        'user_id',
-        'type',
-        'title',
-        'message',
-        'data',
-        'read_at',
-    ];
-
-    protected $casts = [
-        'data' => 'array',
-        'read_at' => 'datetime',
-    ];
-
-    public function user(): BelongsTo
+    public static function create(array $attributes): ?object
     {
-        return $this->belongsTo(User::class);
+        $data = $attributes;
+        if (isset($data['data']) && is_array($data['data'])) {
+            $data['data'] = json_encode($data['data']);
+        }
+        if (!isset($data['created_at'])) {
+            $data['created_at'] = now();
+        }
+        if (!isset($data['updated_at'])) {
+            $data['updated_at'] = now();
+        }
+
+        $id = DB::table(static::TABLE)->insertGetId($data);
+        return static::find($id);
+    }
+
+    public static function find(int|string $id): ?object
+    {
+        return DB::table(static::TABLE)->where('id', $id)->first();
+    }
+
+    public static function forUser(object|array $user): \Illuminate\Support\Collection
+    {
+        $userId = is_array($user) ? ($user['id'] ?? null) : ($user->id ?? null);
+        if ($userId === null) {
+            return collect();
+        }
+
+        return DB::table(static::TABLE)
+            ->where('user_id', $userId)
+            ->get();
+    }
+
+    public static function userFor(object|array $notification): ?object
+    {
+        $userId = is_array($notification) ? ($notification['user_id'] ?? null) : ($notification->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
     }
 }
+

@@ -13,7 +13,7 @@ class LibrarianMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || !$user->roles()->where('name', 'librarian')->exists()) {
+        if (! $user || ! $user->isLibrarian()) {
             abort(403);
         }
 

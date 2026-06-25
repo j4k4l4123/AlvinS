@@ -13,7 +13,7 @@ class MemberMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || !$user->roles()->where('name', 'member')->exists()) {
+        if (!$user || !$user->isMember()) {
             abort(403);
         }
 

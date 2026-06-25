@@ -40,9 +40,12 @@ class AuthController extends Controller
                 'password' => bcrypt($validated['password']),
             ]);
 
-        $role = Role::where('name', $validated['role'])->first();
+        $role = Role::findByName($validated['role']);
         if ($role) {
-            $user->roles()->attach($role->id);
+            \Illuminate\Support\Facades\DB::table('role_user')->insert([
+                'user_id' => $user->id,
+                'role_id' => $role->id,
+            ]);
         }
 
         Auth::login($user);

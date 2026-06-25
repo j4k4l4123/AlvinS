@@ -2,21 +2,40 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
-class categories extends Model
+class categories
 {
-    protected $table = 'categories';
+    protected const TABLE = 'categories';
 
-    protected $fillable = [
-        'name',
-        'slug',
-        'description',
-    ];
-
-    public function buku(): HasMany
+   
+    public static function find(int|string $categoryId): ?object
     {
-        return $this->hasMany(Book::class, 'category_id');
+        return DB::table(static::TABLE)
+            ->where('category_id', $categoryId)
+            ->first();
+    }
+
+
+    public static function all(): \Illuminate\Support\Collection
+    {
+        return DB::table(static::TABLE)->get();
+    }
+
+  
+    public static function bukuFor(object|array $category): \Illuminate\Support\Collection
+    {
+        $categoryId = is_array($category)
+            ? ($category['category_id'] ?? null)
+            : ($category->category_id ?? null);
+
+        if ($categoryId === null) {
+            return collect();
+        }
+
+        return DB::table('books')
+            ->where('category_id', $categoryId)
+            ->get();
     }
 }
+

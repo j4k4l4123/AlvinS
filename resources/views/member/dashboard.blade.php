@@ -97,8 +97,8 @@
                             <div class="text-muted">Jatuh tempo: {{ $borrowing->tanggal_kembali?->format('d/m/Y') ?? '-' }}</div>
                         </div>
                         <div>
-                            @if($borrowing->isOverdue())
-                                <span class="status-badge status-borrowed">Overdue {{ $borrowing->daysOverdue() }} hari</span>
+                            @if(\App\Models\Pinjam::isOverdue($borrowing))
+                                <span class="status-badge status-borrowed">Overdue {{ \App\Models\Pinjam::daysOverdue($borrowing) }} hari</span>
                             @else
                                 <span class="status-badge status-available">On Time</span>
                             @endif

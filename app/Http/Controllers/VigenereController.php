@@ -14,8 +14,8 @@ class VigenereController extends Controller
 
     private function shiftChar(string $char, int $shift, bool $isEncrypt): string
     {
-        // Mod-255 shift for raw bytes: encrypts ALL characters (including special chars).
-        $ord = ord($char); // 0..255
+       
+        $ord = ord($char); 
         $delta = $isEncrypt ? $shift : -$shift;
 
         $out = ($ord + $delta) % 255;

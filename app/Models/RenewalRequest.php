@@ -2,42 +2,59 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
-class RenewalRequest extends Model
+
+class RenewalRequest
 {
-    protected $fillable = [
-        'user_id',
-        'anggota_id',
-        'pinjam_id',
-        'status',
-        'processed_by',
-        'notes',
-        'processed_at',
-    ];
+    protected const TABLE = 'renewal_requests';
 
-    protected $casts = [
-        'processed_at' => 'datetime',
-    ];
-
-    public function user(): BelongsTo
+    public static function find(int|string $id): ?object
     {
-        return $this->belongsTo(User::class);
+        return DB::table(static::TABLE)->where('id', $id)->first();
     }
 
-    public function anggota(): BelongsTo
+    public static function userFor(object|array $request): ?object
     {
-        return $this->belongsTo(Anggota::class);
+        $userId = is_array($request) ? ($request['user_id'] ?? null) : ($request->user_id ?? null);
+        if ($userId === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $userId)->first();
     }
 
-    public function borrowing(): BelongsTo
+    public static function anggotaFor(object|array $request): ?object
     {
-        return $this->belongsTo(Pinjam::class, 'pinjam_id');
+        $anggotaId = is_array($request) ? ($request['anggota_id'] ?? null) : ($request->anggota_id ?? null);
+        if ($anggotaId === null) {
+            return null;
+        }
+
+        return DB::table('anggota')->where('id', $anggotaId)->first();
     }
 
-    public function processedBy(): BelongsTo
+    public static function borrowingFor(object|array $request): ?object
     {
-        return $this->belongsTo(User::class, 'processed_by');
+        $pinjamId = is_array($request) ? ($request['pinjam_id'] ?? null) : ($request->pinjam_id ?? null);
+        if ($pinjamId === null) {
+            return null;
+        }
+
+        return DB::table('pinjam')->where('id', $pinjamId)->first();
+    }
+
+    public static function processedByFor(object|array $request): ?object
+    {
+        $processedById = is_array($request)
+            ? ($request['processed_by'] ?? null)
+            : ($request->processed_by ?? null);
+
+        if ($processedById === null) {
+            return null;
+        }
+
+        return DB::table('users')->where('id', $processedById)->first();
     }
 }
+

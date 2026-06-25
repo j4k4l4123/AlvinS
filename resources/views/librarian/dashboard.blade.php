@@ -129,8 +129,8 @@
                         <td>{{ $borrowing->book?->judul ?? '-' }}</td>
                         <td>{{ $borrowing->anggota?->nama ?? '-' }}</td>
                         <td>{{ $borrowing->tanggal_kembali?->format('d/m/Y') ?? '-' }}</td>
-                        <td style="color: var(--pu-danger); font-weight: bold;">{{ $borrowing->daysOverdue() }} days</td>
-                        <td>Rp {{ number_format($borrowing->calculateFine(), 0, ',', '.') }}</td>
+                        <td style="color: var(--pu-danger); font-weight: bold;">{{ \App\Models\Pinjam::daysOverdue($borrowing) }} days</td>
+                        <td>Rp {{ number_format(\App\Models\Pinjam::calculateFine($borrowing), 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -146,7 +146,7 @@
         @foreach($recentActivity as $activity)
             <div class="activity-item">
                 <span class="activity-text">{!! $activity['text'] !!}</span>
-                <span class="activity-time">{{ $activity['time']->diffForHumans() }}</span>
+                <span class="activity-time">{{ optional($activity['time'])->diffForHumans() }}</span>
             </div>
         @endforeach
     @else

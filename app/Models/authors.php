@@ -2,20 +2,41 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
-class authors extends Model
+/**
+ * Query-Builder based implementation for authors.
+ *
+ * Note: This file intentionally does NOT use Eloquent ORM.
+ */
+class authors
 {
-    protected $table = 'authors';
+    protected const TABLE = 'authors';
 
-    protected $fillable = [
-        'name',
-        'slug',
-    ];
-
-    public function buku(): HasMany
+    /**
+     * Find author by primary key.
+     */
+    public static function find(int|string $id): ?object
     {
-        return $this->hasMany(Book::class, 'author_id');
+        return DB::table(static::TABLE)->where('id', $id)->first();
+    }
+
+    public static function all(): \Illuminate\Support\Collection
+    {
+        return DB::table(static::TABLE)->get();
+    }
+
+   
+    public static function bukuFor(object|array $author): \Illuminate\Support\Collection
+    {
+        $authorId = is_array($author) ? ($author['id'] ?? null) : ($author->id ?? null);
+        if ($authorId === null) {
+            return collect();
+        }
+
+        return DB::table('books')
+            ->where('author_id', $authorId)
+            ->get();
     }
 }
+

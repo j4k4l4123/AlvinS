@@ -31,13 +31,26 @@ class RegisterController extends Controller
                 'password' => $validated['password'],
             ]);
 
-            $memberRole = Role::where('name', 'member')->firstOrFail();
-            $user->roles()->syncWithoutDetaching([$memberRole->id]);
+            $memberRole = Role::findByName('member');
+            if (!$memberRole) {
+                throw new \Exception('Role member tidak ditemukan.');
+            }
 
-            $nextId = (Anggota::max('id') ?? 0) + 1;
+            $exists = DB::table('role_user')
+                ->where('user_id', $user->id)
+                ->where('role_id', $memberRole->id)
+                ->exists();
+            if (!$exists) {
+                DB::table('role_user')->insert([
+                    'user_id' => $user->id,
+                    'role_id' => $memberRole->id,
+                ]);
+            }
+
+            $nextId = ((int) DB::table('anggota')->max('id') ?? 0) + 1;
             $anggotaCode = 'AGT-' . str_pad((string) $nextId, 5, '0', STR_PAD_LEFT);
 
-            $anggota = Anggota::create([
+            $anggotaId = DB::table('anggota')->insertGetId([
                 'id_anggota' => $anggotaCode,
                 'nama' => $validated['name'],
                 'alamat' => '-',
@@ -46,7 +59,9 @@ class RegisterController extends Controller
                 'user_id' => $user->id,
             ]);
 
-            MemberProfile::create([
+            $anggota = DB::table('anggota')->where('id', $anggotaId)->first();
+
+            DB::table('member_profiles')->insert([
                 'user_id' => $user->id,
                 'id_anggota' => $anggota->id_anggota,
                 'nama' => $validated['name'],
@@ -54,21 +69,28 @@ class RegisterController extends Controller
                 'no_tlp' => '-',
                 'tanggal_daftar' => now()->toDateString(),
                 'membership_status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            $anggota->libraryCard()->create([
+            DB::table('library_cards')->insert([
+                'anggota_id' => $anggota->id,
                 'user_id' => $user->id,
                 'card_number' => $libraryCardService->generateSequentialCardNumber(),
                 'status' => 'active',
                 'issued_date' => now()->toDateString(),
                 'expiry_date' => now()->addYear()->toDateString(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             if (($validated['role'] ?? 'member') === 'librarian') {
-                LibrarianRegistrationRequest::create([
+                DB::table('librarian_registration_requests')->insert([
                     'user_id' => $user->id,
                     'status' => 'pending',
                     'reason' => $validated['reason'] ?? null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
