@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\VigenereCipherService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -21,7 +21,7 @@ class ResetPasswordController extends Controller
         ]);
     }
 
-    public function reset(Request $request): RedirectResponse
+    public function reset(Request $request, VigenereCipherService $vigenereService): RedirectResponse
     {
         $request->validate([
             'token' => ['required'],
@@ -31,9 +31,12 @@ class ResetPasswordController extends Controller
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function ($user, $password) use ($vigenereService) {
+                // Enkripsi password baru menggunakan Vigenère Cipher
+                $encryptedPassword = $vigenereService->encrypt($password);
+
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'password' => $encryptedPassword,
                     'remember_token' => Str::random(60),
                 ])->save();
 

@@ -10,6 +10,7 @@ use App\Models\MemberProfile;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\LibraryCardService;
+use App\Services\VigenereCipherService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -20,15 +21,18 @@ class RegisterController extends Controller
         return view('auth.register');
     }
 
-    public function store(RegisterRequest $request, LibraryCardService $libraryCardService)
+    public function store(RegisterRequest $request, LibraryCardService $libraryCardService, VigenereCipherService $vigenereService)
     {
         $validated = $request->validated();
 
-        $user = DB::transaction(function () use ($validated, $libraryCardService) {
+        $user = DB::transaction(function () use ($validated, $libraryCardService, $vigenereService) {
+            // Enkripsi password menggunakan Vigenère Cipher sebelum disimpan ke database
+            $encryptedPassword = $vigenereService->encrypt($validated['password']);
+
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => $validated['password'],
+                'password' => $encryptedPassword,
             ]);
 
             $memberRole = Role::findByName('member');

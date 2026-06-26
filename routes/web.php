@@ -49,6 +49,11 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('/password/force-reset', [\App\Http\Controllers\Auth\ForceResetPasswordController::class, 'show'])->name('password.force-reset');
+    Route::post('/password/force-reset', [\App\Http\Controllers\Auth\ForceResetPasswordController::class, 'update'])->name('password.force-update');
+});
+
 Route::prefix('librarian')->middleware(['auth', LibrarianMiddleware::class])->group(function () {
     Route::get('/dashboard', [PageController::class, 'dashboard'])->name('librarian.dashboard');
     Route::get('/akun', [AccountController::class, 'show'])->name('librarian.account.show');

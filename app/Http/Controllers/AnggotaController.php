@@ -7,8 +7,8 @@ use App\Models\Anggota;
 use App\Models\MemberProfile;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\VigenereCipherService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 
 class AnggotaController extends Controller
@@ -59,10 +59,14 @@ class AnggotaController extends Controller
     }
 
     // Create user
+    // Enkripsi password menggunakan Vigenère Cipher
+    $vigenereService = app(VigenereCipherService::class);
+    $encryptedPassword = $vigenereService->encrypt($validated['password']);
+
     $user = User::create([
         'name' => $validated['nama'],
         'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
+        'password' => $encryptedPassword,
     ]);
 
     // Assign member role

@@ -63,7 +63,7 @@ class VigenereController extends Controller
 
         return redirect()->route('vigenere.index')
             ->with('vigenere_mode', 'encrypt')
-            ->with('vigenere_result', $result);
+            ->with('vigenere_result', base64_encode($result));
     }
 
     public function decrypt(Request $request)
@@ -94,7 +94,7 @@ class VigenereController extends Controller
 
         return redirect()->route('vigenere.index')
             ->with('vigenere_mode', 'decrypt')
-            ->with('vigenere_result', $result);
+            ->with('vigenere_result', base64_encode($result));
     }
 }
 
